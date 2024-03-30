@@ -1,6 +1,9 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
 
+import choiKoDaKimNamChung.grammarChecker.docx.Docx;
+import choiKoDaKimNamChung.grammarChecker.docx.Paragraph;
+import choiKoDaKimNamChung.grammarChecker.docx.Table;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Service;
@@ -10,38 +13,39 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DocxParserImp implements DocxParser{
+
     @Override
-    public DocxSpellCheckerDTO.SpellCheckDTO docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+    public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
         return null;
     }
 
     @Override
-    public DocxSpellCheckerDTO.IBodyDTO iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType) {
+    public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType) {
         return null;
     }
 
     @Override
-    public List<List<DocxSpellCheckerDTO.IBodyDTO>> tableParse(XWPFTable table, SpellCheckerType spellCheckerType) {
+    public Table tableParse(XWPFTable table, SpellCheckerType spellCheckerType) {
         return null;
     }
 
     @Override
-    public DocxSpellCheckerDTO.ParagraphDTO paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
+    public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
         return null;
     }
 
     @Override
-    public List<DocxSpellCheckerDTO.IBodyDTO> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType) {
+    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType) {
         return null;
     }
 
     @Override
-    public List<DocxSpellCheckerDTO.IBodyDTO> headerParse(XWPFHeader header, SpellCheckerType spellCheckerType) {
+    public List<IBody> headerParse(XWPFHeader header, SpellCheckerType spellCheckerType) {
         return null;
     }
 
     @Override
-    public List<DocxSpellCheckerDTO.IBodyDTO> footerParse(XWPFFooter footer, SpellCheckerType spellCheckerType) {
+    public List<IBody> footerParse(XWPFFooter footer, SpellCheckerType spellCheckerType) {
         return null;
     }
 }
