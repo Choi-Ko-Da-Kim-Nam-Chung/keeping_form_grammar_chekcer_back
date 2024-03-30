@@ -2,6 +2,7 @@ package choiKoDaKimNamChung.grammarChecker.docx;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -10,5 +11,5 @@ public class Table extends IBody{
         super(IBodyType.TABLE);
     }
 
-    List<List<Paragraph>> table;
+    List<List<Paragraph>> table = new ArrayList<>();
 }
