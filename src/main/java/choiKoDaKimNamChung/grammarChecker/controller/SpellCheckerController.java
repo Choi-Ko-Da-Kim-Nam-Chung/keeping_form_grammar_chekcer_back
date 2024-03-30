@@ -2,7 +2,7 @@ package choiKoDaKimNamChung.grammarChecker.controller;
 
 import choiKoDaKimNamChung.grammarChecker.docx.Docx;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
-import choiKoDaKimNamChung.grammarChecker.service.docx.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;

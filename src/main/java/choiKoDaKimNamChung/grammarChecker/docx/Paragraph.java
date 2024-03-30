@@ -1,6 +1,5 @@
 package choiKoDaKimNamChung.grammarChecker.docx;
 
-import choiKoDaKimNamChung.grammarChecker.service.docx.IBodyType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

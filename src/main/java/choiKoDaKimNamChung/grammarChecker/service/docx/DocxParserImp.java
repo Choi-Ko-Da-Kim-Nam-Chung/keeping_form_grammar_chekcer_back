@@ -1,11 +1,10 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
 
-import choiKoDaKimNamChung.grammarChecker.docx.Docx;
-import choiKoDaKimNamChung.grammarChecker.docx.Paragraph;
-import choiKoDaKimNamChung.grammarChecker.docx.Table;
+import choiKoDaKimNamChung.grammarChecker.docx.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.IBody;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +20,14 @@ public class DocxParserImp implements DocxParser{
 
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType) {
+        if(bodyElement.getElementType() == BodyElementType.PARAGRAPH){
+            return (IBody) paragraphParse((XWPFParagraph)bodyElement,spellCheckerType);
+//            if(!((XWPFParagraph) bodyElement).getFootnoteText().isEmpty()){}
+        }else if(bodyElement.getElementType() == BodyElementType.TABLE){
+            return (IBody) tableParse((XWPFTable)bodyElement, spellCheckerType);
+        }else{
+            System.out.println("bodyElement = " + bodyElement.getElementType());
+        }
         return null;
     }
 
