@@ -5,23 +5,21 @@ import org.apache.poi.xwpf.usermodel.*;
 
 import java.util.List;
 
-public interface DocxParse {
-    public SpellCheckResponseDTO docxParse(XWPFDocument document, SpellCheckerType type);
+public interface DocxParser {
+    public SpellCheckDTO docxParse(XWPFDocument document, SpellCheckerType spellCheckerType);
 
-    public IBodyDTO iBodyParse(IBodyElement bodyElement, SpellCheckerType type);
+    public IBodyDTO iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType);
 
-    public List<List<IBodyDTO>> tableParse(XWPFTable table, SpellCheckerType type);
+    public List<List<IBodyDTO>> tableParse(XWPFTable table, SpellCheckerType spellCheckerType);
 
-    public ParagraphDTO paragraphParse(XWPFParagraph paragraph, SpellCheckerType type);
+    public ParagraphDTO paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType);
 
-    public String footNoteEndNoteIgnore(String paragraph);
+//    public String footNoteEndNoteIgnore(String paragraph); 라이브러리를 직접 수정하는 것을 고려
 
-    public List<IBodyDTO> EndNoteParse(XWPFEndnote endNote);
+    public List<IBodyDTO> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType);
 
-    public List<IBodyDTO> FootNoteParse(XWPFFootnote footnote);
+    public List<IBodyDTO> headerParse(XWPFHeader header, SpellCheckerType spellCheckerType);
 
-    public List<IBodyDTO> headerParse(XWPFHeader header, SpellCheckerType type);
-
-    public List<IBodyDTO> footerParse(XWPFFooter footer, SpellCheckerType type);
+    public List<IBodyDTO> footerParse(XWPFFooter footer, SpellCheckerType spellCheckerType);
 
 }

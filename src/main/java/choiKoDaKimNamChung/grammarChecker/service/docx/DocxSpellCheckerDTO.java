@@ -8,7 +8,7 @@ import java.util.List;
 public class DocxSpellCheckerDTO {
 
     @Data
-    public static class SpellCheckResponseDTO {
+    public static class SpellCheckDTO {
         List<IBodyDTO> header = new ArrayList<>();
         List<IBodyDTO> body = new ArrayList<>();
         List<IBodyDTO> footer = new ArrayList<>();
