@@ -53,7 +53,7 @@ public class SpellCheckerController {
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=modified_document.docx");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "modified_" + file.getOriginalFilename());
 
             return ResponseEntity.ok()
                     .headers(headers)
