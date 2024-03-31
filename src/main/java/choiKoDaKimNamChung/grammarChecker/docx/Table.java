@@ -11,5 +11,5 @@ public class Table extends IBody{
         super(IBodyType.TABLE);
     }
 
-    List<List<Paragraph>> table = new ArrayList<>();
+    List<List<IBody>> table = new ArrayList<>();
 }

@@ -2,11 +2,13 @@ package choiKoDaKimNamChung.grammarChecker.service.docx;
 
 
 import choiKoDaKimNamChung.grammarChecker.docx.*;
+import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
-import org.apache.poi.xwpf.usermodel.IBody;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
