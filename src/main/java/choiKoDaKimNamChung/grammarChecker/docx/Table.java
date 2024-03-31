@@ -11,5 +11,5 @@ public class Table extends IBody{
         super(IBodyType.TABLE);
     }
 
-    List<List<IBody>> table = new ArrayList<>();
+    List<List<TableCell>> table = new ArrayList<>();
 }

@@ -8,8 +8,11 @@ import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -36,17 +39,40 @@ public class DocxParserImp implements DocxParser{
     @Override
     public Table tableParse(XWPFTable table, SpellCheckerType spellCheckerType) {
         Table t = new Table();
+        Map<Integer, TableCell> checkRowspan = new HashMap<>();
+        List<XWPFTableRow> rows = table.getRows();
         for (XWPFTableRow row : table.getRows()) {
-            List<choiKoDaKimNamChung.grammarChecker.docx.IBody> arr = new ArrayList<>();
-            for (XWPFTableCell tableCell : row.getTableCells()) {
-                for (IBodyElement bodyElement : tableCell.getBodyElements()) {
-                    //셀 병합 체크도 필요
-                    arr.add(iBodyParse(bodyElement, spellCheckerType));
+            List<XWPFTableCell> cells = row.getTableCells();
+            int cal = 0;
+            List<TableCell> arr = new ArrayList<>();
+
+            for (int j=0; j<cells.size(); j++, cal++) {
+                TableCell tableCell = new TableCell();
+
+                if(cells.get(j).getCTTc().getTcPr().getGridSpan() != null){
+                    BigInteger colspan = cells.get(j).getCTTc().getTcPr().getGridSpan().getVal();
+                    tableCell.setColspan((int) colspan.longValue());
+                    cal += (int) colspan.longValue() - 1;
                 }
+
+                if(cells.get(j).getCTTc().getTcPr().getVMerge() != null){
+                    if(cells.get(j).getCTTc().getTcPr().getVMerge().getVal() == null){
+                        checkRowspan.get(cal).plusRowSpan();
+                        continue;
+                    } else if ("restart".equals(cells.get(j).getCTTc().getTcPr().getVMerge().getVal().toString())){
+                        checkRowspan.put(cal, tableCell);
+                    }
+                }
+
+                for (IBodyElement bodyElement : cells.get(j).getBodyElements()) {
+                    tableCell.setIBody(iBodyParse(bodyElement, spellCheckerType));
+                }
+                arr.add(tableCell);
             }
             t.getTable().add(arr);
+
         }
-        return null;
+        return t;
     }
 
     @Override
