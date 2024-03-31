@@ -20,7 +20,11 @@ public class DocxParserImp implements DocxParser{
 
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
-        return null;
+        Docx docx = new Docx();
+        for (IBodyElement bodyElement : document.getBodyElements()) {
+            docx.getBody().add(iBodyParse(bodyElement, spellCheckerType));
+        }
+        return docx;
     }
 
     @Override
