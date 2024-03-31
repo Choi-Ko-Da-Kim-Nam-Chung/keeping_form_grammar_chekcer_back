@@ -35,6 +35,17 @@ public class DocxParserImp implements DocxParser{
 
     @Override
     public Table tableParse(XWPFTable table, SpellCheckerType spellCheckerType) {
+        Table t = new Table();
+        for (XWPFTableRow row : table.getRows()) {
+            List<choiKoDaKimNamChung.grammarChecker.docx.IBody> arr = new ArrayList<>();
+            for (XWPFTableCell tableCell : row.getTableCells()) {
+                for (IBodyElement bodyElement : tableCell.getBodyElements()) {
+                    //셀 병합 체크도 필요
+                    arr.add(iBodyParse(bodyElement, spellCheckerType));
+                }
+            }
+            t.getTable().add(arr);
+        }
         return null;
     }
 
