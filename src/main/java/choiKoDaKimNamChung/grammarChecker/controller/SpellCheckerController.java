@@ -1,14 +1,13 @@
 package choiKoDaKimNamChung.grammarChecker.controller;
 
+import choiKoDaKimNamChung.grammarChecker.docx.Docx;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
-import choiKoDaKimNamChung.grammarChecker.service.docx.DocxSpellCheckerDTO.*;
-import choiKoDaKimNamChung.grammarChecker.service.docx.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +27,7 @@ public class SpellCheckerController {
     private final DocxParser docxParser;
 
     @PostMapping("/grammar-check/docx/scan")
-    public ResponseEntity<SpellCheckDTO> grammarCheckDocxScan(@RequestParam("file") MultipartFile file, @RequestParam("checker-type")SpellCheckerType type){
+    public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file, @RequestParam("checker-type")SpellCheckerType type){
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
@@ -37,7 +36,7 @@ public class SpellCheckerController {
         }
         List<List<Object>> list = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
-        SpellCheckDTO spellCheckResponseDTO = docxParser.docxParse(document, type);
+        Docx spellCheckResponseDTO = docxParser.docxParse(document, type);
         return ResponseEntity.ok(spellCheckResponseDTO);
     }
 
@@ -54,7 +53,7 @@ public class SpellCheckerController {
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=modified_document.docx");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "modified_" + file.getOriginalFilename());
 
             return ResponseEntity.ok()
                     .headers(headers)

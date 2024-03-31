@@ -1,4 +1,4 @@
-package choiKoDaKimNamChung.grammarChecker.service.docx;
+package choiKoDaKimNamChung.grammarChecker.docx;
 
 public enum IBodyType {
     TABLE, PARAGRAPH, FOOT_NOTE, END_NOTE
