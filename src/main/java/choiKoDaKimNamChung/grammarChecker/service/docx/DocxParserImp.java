@@ -83,6 +83,7 @@ public class DocxParserImp implements DocxParser {
         response.subscribe(wordError -> {
             result.getErrors().add(wordError);
         });
+        response.blockLast();
         return result;
     }
 
