@@ -1,5 +1,6 @@
 package choiKoDaKimNamChung.grammarChecker.docx;
 
+import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

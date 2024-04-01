@@ -27,7 +27,8 @@ public class SpellCheckerController {
     private final DocxParser docxParser;
 
     @PostMapping("/grammar-check/docx/scan")
-    public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file, @RequestParam("checker-type")SpellCheckerType type){
+    public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file,
+                                                     @RequestParam("type") SpellCheckerType type){
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
