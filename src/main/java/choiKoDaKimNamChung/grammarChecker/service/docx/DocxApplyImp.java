@@ -32,7 +32,18 @@ public class DocxApplyImp implements DocxApply{
 
     @Override
     public void tableParse(XWPFTable table, Table t) {
-
+        Iterator<List<TableCell>> tRow = t.getTable().iterator();
+        for (XWPFTableRow row : table.getRows()) {
+            Iterator<TableCell> tCell = tRow.next().iterator();
+            for (XWPFTableCell cell : row.getTableCells()) {
+                if (cell.getCTTc().getTcPr().getVMerge() != null && cell.getCTTc().getTcPr().getVMerge().getVal() == null) {
+                    continue;
+                }
+                for (IBodyElement bodyElement : cell.getBodyElements()) {
+                    iBodyParse(bodyElement, tCell.next().getIBody());
+                }
+            }
+        }
     }
 
     @Override
