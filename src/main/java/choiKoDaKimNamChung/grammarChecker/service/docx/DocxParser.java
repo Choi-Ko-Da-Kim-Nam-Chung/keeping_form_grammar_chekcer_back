@@ -17,7 +17,7 @@ public interface DocxParser {
 
 //    public String footNoteEndNoteIgnore(String paragraph); 라이브러리를 직접 수정하는 것을 고려
 
-    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType);
+    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType, SpellCheckerType spellCheckerType);
 
     public List<IBody> headerParse(XWPFHeader header, SpellCheckerType spellCheckerType);
 

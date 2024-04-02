@@ -44,7 +44,6 @@ public class DocxParserImp implements DocxParser{
     public Table tableParse(XWPFTable table, SpellCheckerType spellCheckerType) {
         Table t = new Table();
         Map<Integer, TableCell> checkRowspan = new HashMap<>();
-        List<XWPFTableRow> rows = table.getRows();
         for (XWPFTableRow row : table.getRows()) {
             List<XWPFTableCell> cells = row.getTableCells();
             int cal = 0;
@@ -85,7 +84,7 @@ public class DocxParserImp implements DocxParser{
     }
 
     @Override
-    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType) {
+    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType, SpellCheckerType spellCheckerType) {
         return null;
     }
 
