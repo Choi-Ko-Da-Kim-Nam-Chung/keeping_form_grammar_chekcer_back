@@ -48,6 +48,29 @@ public class DocxApplyImp implements DocxApply{
 
     @Override
     public void paragraphParse(XWPFParagraph paragraph, Paragraph p) {
+        int runIdx = 0;
+        int errorIdx = 0;
+        int charIdx = 0;
+        while(errorIdx < p.getErrors().size()){
+            //변경사항 없음
+            if(p.getErrors().get(errorIdx).getReplaceStr() == null){
+                errorIdx++;
+                continue;
+            }
+            charIdx += paragraph.getRuns().get(runIdx).text().length();
+            if(charIdx >= p.getErrors().get(errorIdx).getStart()){
+                paragraph.getRuns().get(runIdx).setText(p.getErrors().get(errorIdx).getReplaceStr());
+                while(charIdx < p.getErrors().get(errorIdx).getEnd()){
+                    charIdx += paragraph.getRuns().get(++runIdx).text().length();;
+                    paragraph.getRuns().get(runIdx).setText("");
+                }
+                //런 처리
+                errorIdx++;
+            }else{
+                runIdx++;
+            }
+
+        }
 
     }
 

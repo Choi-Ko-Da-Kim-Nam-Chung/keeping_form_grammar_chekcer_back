@@ -1,7 +1,10 @@
 package choiKoDaKimNamChung.grammarChecker.docx;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class WordError {
     String help;
     String orgStr;

@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -41,7 +42,7 @@ public class SpellCheckerController {
     }
 
     @PostMapping("/grammar-check/docx/apply")
-    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(@RequestPart("file") MultipartFile file, @RequestPart("data") Docx docx) {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
