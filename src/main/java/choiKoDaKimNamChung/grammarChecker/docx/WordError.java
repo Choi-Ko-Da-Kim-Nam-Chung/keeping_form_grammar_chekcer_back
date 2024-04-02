@@ -6,6 +6,7 @@ public class WordError {
     String help;
     String orgStr;
     List<String> candiWord;
+    String replaceStr;
     int errorIdx;
     int start;
     int end;
