@@ -85,7 +85,7 @@ public class DocxParserImp implements DocxParser{
     }
 
     @Override
-    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType) {
+    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType, SpellCheckerType spellCheckerType) {
         return null;
     }
 
