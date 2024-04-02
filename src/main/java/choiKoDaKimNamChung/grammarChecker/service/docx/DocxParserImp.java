@@ -22,30 +22,31 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+
         Docx docx = new Docx();
-//        List<XWPFHeader> headerList = document.getHeaderList();
-//        for (XWPFHeader header : headerList) {
-//            List<IBodyElement> bodyElements = header.getBodyElements();
-//            for (IBodyElement bodyElement : bodyElements) {
-//                IBody iBody = iBodyParse(bodyElement, spellCheckerType);
-//                docx.getHeader().add(iBody);
-//            }
-//        }
+        List<XWPFHeader> headerList = document.getHeaderList();
+        for (XWPFHeader header : headerList) {
+            List<IBodyElement> bodyElements = header.getBodyElements();
+            for (IBodyElement bodyElement : bodyElements) {
+                IBody iBody = iBodyParse(bodyElement, spellCheckerType);
+                docx.getHeader().add(iBody);
+            }
+        }
 
         List<XWPFParagraph> paragraphs = document.getParagraphs();
         for (XWPFParagraph paragraph : paragraphs) {
-            Paragraph result = (Paragraph) iBodyParse(paragraph, spellCheckerType);
+            IBody result = iBodyParse(paragraph, spellCheckerType);
             docx.getBody().add(result);
         }
 
-//        List<XWPFFooter> footerList = document.getFooterList();
-//        for (XWPFFooter footer : footerList) {
-//            List<IBodyElement> bodyElements = footer.getBodyElements();
-//            for (IBodyElement bodyElement : bodyElements) {
-//                IBody iBody = iBodyParse(bodyElement, spellCheckerType);
-//                docx.getFooter().add(iBody);
-//            }
-//        }
+        List<XWPFFooter> footerList = document.getFooterList();
+        for (XWPFFooter footer : footerList) {
+            List<IBodyElement> bodyElements = footer.getBodyElements();
+            for (IBodyElement bodyElement : bodyElements) {
+                IBody iBody = iBodyParse(bodyElement, spellCheckerType);
+                docx.getFooter().add(iBody);
+            }
+        }
         return docx;
     }
 
@@ -70,6 +71,8 @@ public class DocxParserImp implements DocxParser {
     @Override
     public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
         Paragraph result = new Paragraph();
+        // TODO : 중간에 미주, 각주가 있을 경우 처리 필요
+
         String url = spellCheckerType.getUrl();
         TextRequest textRequest = new TextRequest(paragraph.getText());
 

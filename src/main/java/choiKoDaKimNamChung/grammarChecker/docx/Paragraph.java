@@ -15,6 +15,4 @@ public class Paragraph extends IBody {
     }
     List<WordError> errors = new ArrayList<>();
     List<IBody> footNoteEndNote = new ArrayList<>();
-
-
 }
