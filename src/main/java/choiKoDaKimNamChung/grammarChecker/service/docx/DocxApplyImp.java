@@ -3,9 +3,11 @@ package choiKoDaKimNamChung.grammarChecker.service.docx;
 import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import org.apache.poi.xwpf.usermodel.*;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Service
 public class DocxApplyImp implements DocxApply{
     @Override
     public XWPFDocument docxParse(XWPFDocument document, Docx docx) {
@@ -15,7 +17,7 @@ public class DocxApplyImp implements DocxApply{
             iBodyParse(bodyElements.get(i), docx.getBody().get(i));
         }
         //footer
-        return null;
+        return document;
     }
 
     @Override
@@ -59,12 +61,22 @@ public class DocxApplyImp implements DocxApply{
             }
             charIdx += paragraph.getRuns().get(runIdx).text().length();
             if(charIdx >= p.getErrors().get(errorIdx).getStart()){
-                paragraph.getRuns().get(runIdx).setText(p.getErrors().get(errorIdx).getReplaceStr());
+                System.out.println("charIdx = " + charIdx);
+                if(p.getErrors().get(errorIdx).getEnd() < charIdx){
+                    System.out.println("paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd()) = " + paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd()));
+                    paragraph.getRuns().get(runIdx).setText(p.getErrors().get(errorIdx).getReplaceStr() + paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd()),0);
+                }else{
+                    paragraph.getRuns().get(runIdx).setText(p.getErrors().get(errorIdx).getReplaceStr(),0);
+                }
                 while(charIdx < p.getErrors().get(errorIdx).getEnd()){
                     charIdx += paragraph.getRuns().get(++runIdx).text().length();;
-                    paragraph.getRuns().get(runIdx).setText("");
+                    System.out.println("(paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd() - charIdx) = " + (paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd() - charIdx)));
+                    if(p.getErrors().get(errorIdx).getEnd() < charIdx){
+                        paragraph.getRuns().get(runIdx).setText(paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd() - charIdx),0);
+                    }else{
+                        paragraph.getRuns().get(runIdx).setText("",0);
+                    }
                 }
-                //런 처리
                 errorIdx++;
             }else{
                 runIdx++;

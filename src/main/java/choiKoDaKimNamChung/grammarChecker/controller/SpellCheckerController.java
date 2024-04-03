@@ -1,6 +1,7 @@
 package choiKoDaKimNamChung.grammarChecker.controller;
 
 import choiKoDaKimNamChung.grammarChecker.docx.Docx;
+import choiKoDaKimNamChung.grammarChecker.service.docx.DocxApply;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
 import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,9 +27,11 @@ import java.util.List;
 public class SpellCheckerController {
 
     private final DocxParser docxParser;
+    private final DocxApply docxApply;
 
     @PostMapping("/grammar-check/docx/scan")
-    public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file, @RequestParam("checker-type")SpellCheckerType type){
+    public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file,
+                                                     @RequestParam("type") SpellCheckerType type){
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
@@ -46,7 +49,8 @@ public class SpellCheckerController {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
-            // document를 변경해서 재할당하는 코드 추가
+
+            document = docxApply.docxParse(document, docx);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.write(out);

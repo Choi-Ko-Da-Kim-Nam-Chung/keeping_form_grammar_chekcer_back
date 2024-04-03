@@ -1,4 +1,8 @@
-package choiKoDaKimNamChung.grammarChecker.docx;
+package choiKoDaKimNamChung.grammarChecker.response;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import lombok.Data;
 
@@ -8,8 +12,8 @@ import java.util.List;
 public class WordError {
     String help;
     String orgStr;
-    List<String> candiWord;
     String replaceStr;
+    List<String> candWord;
     int errorIdx;
     int start;
     int end;
