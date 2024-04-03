@@ -2,6 +2,7 @@ package choiKoDaKimNamChung.grammarChecker.service.docx;
 
 import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
+import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Service;
 
@@ -50,39 +51,41 @@ public class DocxApplyImp implements DocxApply{
 
     @Override
     public void paragraphParse(XWPFParagraph paragraph, Paragraph p) {
-        int runIdx = 0;
-        int errorIdx = 0;
-        int charIdx = 0;
-        while(errorIdx < p.getErrors().size()){
-            //변경사항 없음
+        int runIdx = paragraph.getRuns().size()-1;
+        int errorIdx = p.getErrors().size()-1;
+        int charIdx = paragraph.getText().length();
+        while(errorIdx>=0){
+            System.out.println("paragraph = " + paragraph.getRuns().get(runIdx).text());
             if(p.getErrors().get(errorIdx).getReplaceStr() == null){
-                errorIdx++;
+                errorIdx--;
                 continue;
             }
-            charIdx += paragraph.getRuns().get(runIdx).text().length();
-            if(charIdx >= p.getErrors().get(errorIdx).getStart()){
-                System.out.println("charIdx = " + charIdx);
-                if(p.getErrors().get(errorIdx).getEnd() < charIdx){
-                    System.out.println("paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd()) = " + paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd()));
-                    paragraph.getRuns().get(runIdx).setText(p.getErrors().get(errorIdx).getReplaceStr() + paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd()),0);
-                }else{
-                    paragraph.getRuns().get(runIdx).setText(p.getErrors().get(errorIdx).getReplaceStr(),0);
-                }
-                while(charIdx < p.getErrors().get(errorIdx).getEnd()){
-                    charIdx += paragraph.getRuns().get(++runIdx).text().length();;
-                    System.out.println("(paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd() - charIdx) = " + (paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd() - charIdx)));
-                    if(p.getErrors().get(errorIdx).getEnd() < charIdx){
-                        paragraph.getRuns().get(runIdx).setText(paragraph.getRuns().get(runIdx).text().substring(p.getErrors().get(errorIdx).getEnd() - charIdx),0);
-                    }else{
-                        paragraph.getRuns().get(runIdx).setText("",0);
-                    }
-                }
-                errorIdx++;
-            }else{
-                runIdx++;
+            while(charIdx - paragraph.getRuns().get(runIdx).text().length() > p.getErrors().get(errorIdx).getEnd() - 1) {
+                charIdx -= paragraph.getRuns().get(runIdx).text().length();
+                runIdx--;
             }
-
+            while(charIdx - paragraph.getRuns().get(runIdx).text().length() > p.getErrors().get(errorIdx).getStart()){
+                charIdx -= paragraph.getRuns().get(runIdx).text().length();
+                paragraph.getRuns().get(runIdx).setText("",0);
+                runIdx--;
+            }
+            String origin = paragraph.getRuns().get(runIdx).text();
+            WordError error = p.getErrors().get(errorIdx--);
+            String change;
+            if(error.getEnd() < charIdx){
+                System.out.println("뒤에도");
+                change = origin.substring(0,origin.length() - (charIdx - error.getStart())) + error.getReplaceStr() + origin.substring(origin.length() - (charIdx - error.getEnd()));
+            }else{
+                System.out.println("error.getEnd() = " + error.getEnd());
+                System.out.println("charIdx = " + charIdx);
+                System.out.println("origin = " + origin);
+                System.out.println("error.getReplaceStr() = " + error.getReplaceStr());
+                System.out.println("뒤에는없어");
+                change = origin.substring(0,origin.length() - (charIdx - error.getStart())) + error.getReplaceStr();
+            }
+            paragraph.getRuns().get(runIdx).setText(change,0);
         }
+
 
     }
 
