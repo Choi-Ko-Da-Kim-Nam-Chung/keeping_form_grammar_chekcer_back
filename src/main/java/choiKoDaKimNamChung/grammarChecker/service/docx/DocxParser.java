@@ -1,27 +1,26 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.service.docx.DocxSpellCheckerDTO.*;
+import choiKoDaKimNamChung.grammarChecker.docx.*;
+import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import org.apache.poi.xwpf.usermodel.*;
 
 import java.util.List;
 
-public interface DocxParse {
-    public SpellCheckResponseDTO docxParse(XWPFDocument document, SpellCheckerType type);
+public interface DocxParser {
+    public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType);
 
-    public IBodyDTO iBodyParse(IBodyElement bodyElement, SpellCheckerType type);
+    public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType);
 
-    public List<List<IBodyDTO>> tableParse(XWPFTable table, SpellCheckerType type);
+    public Table tableParse(XWPFTable table, SpellCheckerType spellCheckerType);
 
-    public ParagraphDTO paragraphParse(XWPFParagraph paragraph, SpellCheckerType type);
+    public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType);
 
-    public String footNoteEndNoteIgnore(String paragraph);
+//    public String footNoteEndNoteIgnore(String paragraph); 라이브러리를 직접 수정하는 것을 고려
 
-    public List<IBodyDTO> EndNoteParse(XWPFEndnote endNote);
+    public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType, SpellCheckerType spellCheckerType);
 
-    public List<IBodyDTO> FootNoteParse(XWPFFootnote footnote);
+    public List<IBody> headerParse(XWPFHeader header, SpellCheckerType spellCheckerType);
 
-    public List<IBodyDTO> headerParse(XWPFHeader header, SpellCheckerType type);
-
-    public List<IBodyDTO> footerParse(XWPFFooter footer, SpellCheckerType type);
+    public List<IBody> footerParse(XWPFFooter footer, SpellCheckerType spellCheckerType);
 
 }
