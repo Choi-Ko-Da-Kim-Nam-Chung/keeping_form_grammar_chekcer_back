@@ -6,6 +6,7 @@ import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DocxParserImp implements DocxParser {
+    int num = 0;
 
     private final WebClient webClient;
     @Override
@@ -50,6 +52,7 @@ public class DocxParserImp implements DocxParser {
                 docx.getFooter().add(iBody);
             }
         }
+        System.out.println("num = " + num);
         return docx;
     }
 
@@ -93,8 +96,9 @@ public class DocxParserImp implements DocxParser {
                     }
                 }
 
+
                 for (IBodyElement bodyElement : cells.get(j).getBodyElements()) {
-                    tableCell.setIBody(iBodyParse(bodyElement, spellCheckerType));
+                    tableCell.getIBody().add(iBodyParse(bodyElement, spellCheckerType));
                 }
                 arr.add(tableCell);
             }
@@ -111,19 +115,20 @@ public class DocxParserImp implements DocxParser {
 
         String url = spellCheckerType.getUrl();
         TextRequest textRequest = new TextRequest(paragraph.getText());
-
-        Flux<WordError> response = webClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(textRequest))
-                .retrieve()
-                .bodyToFlux(WordError.class);
-
-        response.subscribe(wordError -> {
-            result.getErrors().add(wordError);
-        });
-        response.blockLast();
-        return result;
+        num ++;
+//        Flux<WordError> response = webClient.post()
+//                .uri(url)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(BodyInserters.fromValue(textRequest))
+//                .retrieve()
+//                .bodyToFlux(WordError.class);
+//
+//        response.subscribe(wordError -> {
+//            result.getErrors().add(wordError);
+//        });
+//        response.blockLast();
+//        return result;
+        return null;
     }
 
     @Override
