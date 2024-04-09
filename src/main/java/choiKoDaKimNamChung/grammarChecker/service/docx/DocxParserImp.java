@@ -23,7 +23,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DocxParserImp implements DocxParser {
-    int num = 0;
 
     private final WebClient webClient;
     @Override
@@ -52,7 +51,6 @@ public class DocxParserImp implements DocxParser {
                 docx.getFooter().add(iBody);
             }
         }
-        System.out.println("num = " + num);
         return docx;
     }
 
@@ -115,20 +113,19 @@ public class DocxParserImp implements DocxParser {
 
         String url = spellCheckerType.getUrl();
         TextRequest textRequest = new TextRequest(paragraph.getText());
-        num ++;
-//        Flux<WordError> response = webClient.post()
-//                .uri(url)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(BodyInserters.fromValue(textRequest))
-//                .retrieve()
-//                .bodyToFlux(WordError.class);
-//
-//        response.subscribe(wordError -> {
-//            result.getErrors().add(wordError);
-//        });
-//        response.blockLast();
-//        return result;
-        return null;
+
+        Flux<WordError> response = webClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(textRequest))
+                .retrieve()
+                .bodyToFlux(WordError.class);
+
+        response.subscribe(wordError -> {
+            result.getErrors().add(wordError);
+        });
+        response.blockLast();
+        return result;
     }
 
     @Override
