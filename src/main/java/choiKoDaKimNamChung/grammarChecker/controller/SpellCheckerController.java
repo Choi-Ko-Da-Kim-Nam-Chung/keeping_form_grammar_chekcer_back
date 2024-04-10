@@ -1,6 +1,7 @@
 package choiKoDaKimNamChung.grammarChecker.controller;
 
 import choiKoDaKimNamChung.grammarChecker.docx.Docx;
+import choiKoDaKimNamChung.grammarChecker.service.docx.DocxApply;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
 import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -25,6 +27,7 @@ import java.util.List;
 public class SpellCheckerController {
 
     private final DocxParser docxParser;
+    private final DocxApply docxApply;
 
     @PostMapping("/grammar-check/docx/scan")
     public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file,
@@ -42,11 +45,12 @@ public class SpellCheckerController {
     }
 
     @PostMapping("/grammar-check/docx/apply")
-    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(@RequestPart("file") MultipartFile file, @RequestPart("data") Docx docx) {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
-            // document를 변경해서 재할당하는 코드 추가
+
+            document = docxApply.docxParse(document, docx);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             document.write(out);

@@ -6,6 +6,7 @@ import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,8 @@ public class DocxParserImp implements DocxParser {
             }
         }
 
-        List<XWPFParagraph> paragraphs = document.getParagraphs();
-        for (XWPFParagraph paragraph : paragraphs) {
+        List<IBodyElement> paragraphs = document.getBodyElements();
+        for (IBodyElement paragraph : paragraphs) {
             IBody result = iBodyParse(paragraph, spellCheckerType);
             docx.getBody().add(result);
         }
@@ -93,8 +94,9 @@ public class DocxParserImp implements DocxParser {
                     }
                 }
 
+
                 for (IBodyElement bodyElement : cells.get(j).getBodyElements()) {
-                    tableCell.setIBody(iBodyParse(bodyElement, spellCheckerType));
+                    tableCell.getIBody().add(iBodyParse(bodyElement, spellCheckerType));
                 }
                 arr.add(tableCell);
             }
