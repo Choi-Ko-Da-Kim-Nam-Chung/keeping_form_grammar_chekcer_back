@@ -1,12 +1,20 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
 import choiKoDaKimNamChung.grammarChecker.docx.*;
+
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
+import choiKoDaKimNamChung.grammarChecker.response.WordError;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Service
+@RequiredArgsConstructor
 public class DocxApplyImp implements DocxApply{
+
+    private final ParagraphApply paragraphApply;
     @Override
     public XWPFDocument docxParse(XWPFDocument document, Docx docx) {
         //header
@@ -21,7 +29,7 @@ public class DocxApplyImp implements DocxApply{
     @Override
     public void iBodyParse(IBodyElement bodyElement, IBody iBody) {
         if (iBody.getType() == IBodyType.PARAGRAPH){
-            paragraphParse((XWPFParagraph) bodyElement,(Paragraph) iBody);
+            paragraphApply.paragraphParse((XWPFParagraph) bodyElement,(Paragraph) iBody);
         }else if(iBody.getType() == IBodyType.TABLE){
             tableParse((XWPFTable) bodyElement,(Table) iBody);
         }else{
@@ -44,11 +52,6 @@ public class DocxApplyImp implements DocxApply{
                 }
             }
         }
-    }
-
-    @Override
-    public void paragraphParse(XWPFParagraph paragraph, Paragraph p) {
-
     }
 
     @Override

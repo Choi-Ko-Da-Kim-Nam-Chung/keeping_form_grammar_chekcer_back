@@ -13,8 +13,6 @@ public interface DocxApply {
 
     public void tableParse(XWPFTable table, Table t);
 
-    public void paragraphParse(XWPFParagraph paragraph, Paragraph p);
-
 //    public String footNoteEndNoteIgnore(String paragraph); 라이브러리를 직접 수정하는 것을 고려
 
     public void endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, List<IBody> iBodyList);
