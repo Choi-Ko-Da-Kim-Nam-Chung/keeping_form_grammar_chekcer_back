@@ -6,13 +6,12 @@ import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class EndNote extends IBody{
-    int num;
     List<IBody> content;
-    public EndNote(int num) {
+    public EndNote() {
         super(IBodyType.END_NOTE);
-        this.num = num;
     }
 }
 

@@ -29,6 +29,38 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+
+        FootNote footNotes = new FootNote();
+        for (XWPFFootnote footnote : document.getFootnotes()) {
+            for (IBodyElement element : footnote.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
+                        footNotes.getContent().add(ibody);
+                    }
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
+                    footNotes.getContent().add(ibody);
+                }
+            }
+        }
+
+        EndNote endNotes = new EndNote();
+        for (XWPFEndnote endnote : document.getEndnotes()) {
+            for (IBodyElement element : endnote.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
+                        endNotes.getContent().add(ibody);
+                    }
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
+                    endNotes.getContent().add(ibody);
+                }
+            }
+        }
+
+
         Docx docx = new Docx();
         List<XWPFHeader> headerList = document.getHeaderList();
         for (XWPFHeader header : headerList) {

@@ -1,5 +1,10 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
+import choiKoDaKimNamChung.grammarChecker.docx.FootNote;
+import choiKoDaKimNamChung.grammarChecker.docx.IBody;
+import choiKoDaKimNamChung.grammarChecker.docx.Paragraph;
+import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -21,16 +26,20 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+@RequiredArgsConstructor
 public class parseHeaderFooter {
 
     static Set<String> footnotesSet = new HashSet<>();
     static Set<String> endnotesSet = new HashSet<>();
     static ArrayList<Map<String, Object>> footendNotes = new ArrayList<>();
     static ArrayList<Map<String, Object>> headerfooterList = new ArrayList<>();
+    static int footnoteEnter = 0;
+    static int endnoteEnter = 0;
+    public static DocxParserImp docxParserImp;
+
 
     public static void main(String[] args) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
-
+        SpellCheckerType spellCheckerType = SpellCheckerType.BUSAN_UNIV;
 //        final String FILEPATH = "/Users/chtw2001/Documents/report.docx";
         final String FILEPATH = "/Users/chtw2001/Desktop/report.docx";
 
@@ -47,12 +56,38 @@ public class parseHeaderFooter {
         headerfooterExtract(document);
         // ------------------------------------------------------------------------------------------------------------------ 머리글 / 바닥글 추출(테이블은 형식 정해지면 진행)
         parseHeaderFooter docxReader = new parseHeaderFooter();
-        for (int i = 0; i < document.getBodyElements().size(); i++) {
-            IBodyElement bodyElement = document.getBodyElements().get(i);
-            docxReader.bodyParse(bodyElement, i);
-        }
+//        for (int i = 0; i < document.getBodyElements().size(); i++) {
+//            IBodyElement bodyElement = document.getBodyElements().get(i);
+//            docxReader.bodyParse(bodyElement, i);
+//        }
         // ------------------------------------------------------------------------------------------------------------------ 미주 / 각주 추출(테이블은 형식 정해지면 진행)
+        List<XWPFFootnote> footnotes = document.getFootnotes();
+        FootNote footNotes = new FootNote();
+        for (XWPFFootnote footnote : footnotes) {
+            XWPFAbstractFootnoteEndnote footnoteEndnote = footnote;
+            List<IBodyElement> bodyElements = footnote.getBodyElements();
+            for (IBodyElement element : bodyElements) {
+                // 체크하는 element의 타입
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        XWPFParagraph paragraph = (XWPFParagraph) element;
+                        Paragraph para = new Paragraph();
+//                        IBody ibody = docxParserImp.paragraphParse(paragraph, spellCheckerType);
+//                        footNotes.getContent().add(para);
+                        System.out.println("Paragraph in Footnote: " + paragraph.getText());
+                    }
 
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    XWPFTable table = (XWPFTable) element;
+//                    IBody ibody = docxParserImp.tableParse(table, spellCheckerType);
+//                    footNotes.getContent().add(ibody);
+                    System.out.println("Table in Footnote");
+                }
+            }
+        }
+        System.out.println("footNotes = " + footNotes);
+        
+        
         System.out.println("footendNotes = "+footendNotes);
         System.out.println("headerfooterList = "+headerfooterList);
 
@@ -125,11 +160,11 @@ public class parseHeaderFooter {
             // 분석, ref 없애고 몇번 paragraph의 어떤 내용이 들어있는지 넣어야함. (맞춤법 검사 돌려야함)
 
             // original text에서 뒤에 있는 note 추출
-            String note = bodyElement.getFootnoteText().replaceAll("\n", "").trim();
+            String note = bodyElement.getFootnoteText();
             List<String> endnotes = extractNotes(note);
 
             // original text에서 뒤에 있는 note 제거
-            String paragraphText = bodyElement.getText().replaceAll("\n", "").trim();
+            String paragraphText = bodyElement.getText();
             String removedNote = paragraphText.replace(note, "");
 
             // original text사이에 있는 footnoteRef, endnoteRef 제거
