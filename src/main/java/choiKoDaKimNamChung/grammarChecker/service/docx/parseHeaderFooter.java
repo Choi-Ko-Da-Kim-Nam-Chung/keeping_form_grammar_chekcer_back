@@ -4,6 +4,7 @@ import choiKoDaKimNamChung.grammarChecker.docx.FootNote;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.docx.Paragraph;
 import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.w3c.dom.Document;
@@ -38,6 +39,84 @@ public class parseHeaderFooter {
     public static DocxParserImp docxParserImp;
 
 
+
+    public static void extractAll(XWPFParagraph paragraph){
+        ExtractData extractData = new ExtractData();
+        String paragraphWithNotes = paragraph.getText();                                // paragraph + ref + note
+        String notes = paragraph.getFootnoteText();                                     // note
+        String paragraphWithRef = paragraphWithNotes.replace(notes, "");     // paragraph + ref
+        removeReferences(extractData, paragraphWithRef);                                // paragraph
+
+
+    }
+
+    public static void removeReferences(ExtractData extractData, String paragraphTextWithRef) {
+        // original text사이에 있는 footnoteRef, endnoteRef 제거
+        Pattern pattern = Pattern.compile("\\[(endnoteRef|footnoteRef):(\\d+)\\]");
+        getPlainTextAndRefNum(extractData, pattern, paragraphTextWithRef);
+    }
+
+    private static void getPlainTextAndRefNum(ExtractData extractData, Pattern pattern, String text) {
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder resultText = new StringBuilder(text);
+
+        // 매칭된 결과를 찾으면서 처리
+        while (matcher.find()) {
+            // Ref 번호 삽입
+            System.out.println(matcher.group(1));
+            System.out.println(Integer.parseInt(matcher.group(2)));
+            extractData.getNoteList().add(new Object[]{matcher.group(1), Integer.parseInt(matcher.group(2))});
+            int start = matcher.start();
+            int end = matcher.end();
+            // 매칭된 부분 문자열 제거
+            resultText.delete(start - (text.length() - resultText.length()), end - (text.length() - resultText.length()));
+        }
+
+        // plainParagraph 삽입
+        extractData.setPlainPragraph(String.valueOf(resultText));
+//        System.out.println("extractData = " + extractData);
+//        for (Object[] objects : extractData.getNoteList()) {
+//            System.out.println(Arrays.toString(objects));
+//
+//        }
+    }
+    public List<String> extractNotes(XWPFParagraph paragraph) {
+        List<String> endnotes = new ArrayList<>();
+        String paragraphWithNotes = paragraph.getText();                                // paragraph + ref + note
+        String notes = paragraph.getFootnoteText();                                     // note
+        String paragraphWithRef = paragraphWithNotes.replace(notes, "");     // paragraph + ref
+//        String plainParagraph = removeAllReferences(paragraphWithRef);                  // paragraph
+
+        extractNotes(notes, endnotes);
+
+        return endnotes;
+
+    }
+
+    private static void extractNotes(String notes, List<String> endnotes) {
+        // 숫자가 1자리수, 2자리수, 혹은 3자리수 일 수 있는 경우를 고려한 정규 표현식, \n 까지 확인할 수 있도록 Pattern.DOTALL 추가
+        Pattern pattern = Pattern.compile("\\[(\\d+):  (.*?)\\]", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(notes);
+
+        while (matcher.find()) {
+            // group(1) => 미주/각주 번호 group(2) => 미주/각주 내용
+            System.out.println("matcher.group(1) = " +  Integer.parseInt(matcher.group(1)));
+            int count = 0;
+            for (int i = 0; i < matcher.group(2).length(); i++) {
+                System.out.println(" matcher.group(2).charAt(i) = " +  matcher.group(2).charAt(i));
+                if (matcher.group(2).charAt(i) == '\n') {
+                    count++;
+                }
+            }
+
+            System.out.println("count = " + count);
+            for (String s : matcher.group(2).split("\n")) {
+                System.out.println("s = " + s);
+            }
+            endnotes.add(matcher.group(2)); // group(2)는 괄호() 안의 주석 내용을 의미
+        }
+    }
+
     public static void main(String[] args) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
         SpellCheckerType spellCheckerType = SpellCheckerType.BUSAN_UNIV;
 //        final String FILEPATH = "/Users/chtw2001/Documents/report.docx";
@@ -52,44 +131,59 @@ public class parseHeaderFooter {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        for (IBodyElement bodyElement : document.getBodyElements()) {
+            if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
+                if (!((XWPFParagraph)bodyElement).getFootnoteText().isEmpty()){
+                    System.out.println("text: "+((XWPFParagraph)bodyElement).getFootnoteText());
+                    extractAll((XWPFParagraph) bodyElement);
+                    System.out.println();
+//                    for (String s : result) {
+//                        System.out.println("s = " + s);
+//                    }
+                }
+
+            }
+
+        }
+
         // ------------------------------------------------------------------------------------------------------------------ 파일 로드
-        headerfooterExtract(document);
+//        headerfooterExtract(document);
         // ------------------------------------------------------------------------------------------------------------------ 머리글 / 바닥글 추출(테이블은 형식 정해지면 진행)
-        parseHeaderFooter docxReader = new parseHeaderFooter();
+//        parseHeaderFooter docxReader = new parseHeaderFooter();
 //        for (int i = 0; i < document.getBodyElements().size(); i++) {
 //            IBodyElement bodyElement = document.getBodyElements().get(i);
 //            docxReader.bodyParse(bodyElement, i);
 //        }
         // ------------------------------------------------------------------------------------------------------------------ 미주 / 각주 추출(테이블은 형식 정해지면 진행)
-        List<XWPFFootnote> footnotes = document.getFootnotes();
-        FootNote footNotes = new FootNote();
-        for (XWPFFootnote footnote : footnotes) {
-            XWPFAbstractFootnoteEndnote footnoteEndnote = footnote;
-            List<IBodyElement> bodyElements = footnote.getBodyElements();
-            for (IBodyElement element : bodyElements) {
-                // 체크하는 element의 타입
-                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-                        XWPFParagraph paragraph = (XWPFParagraph) element;
-                        Paragraph para = new Paragraph();
-//                        IBody ibody = docxParserImp.paragraphParse(paragraph, spellCheckerType);
-//                        footNotes.getContent().add(para);
-                        System.out.println("Paragraph in Footnote: " + paragraph.getText());
-                    }
-
-                } else if (element.getElementType() == BodyElementType.TABLE) {
-                    XWPFTable table = (XWPFTable) element;
-//                    IBody ibody = docxParserImp.tableParse(table, spellCheckerType);
-//                    footNotes.getContent().add(ibody);
-                    System.out.println("Table in Footnote");
-                }
-            }
-        }
-        System.out.println("footNotes = " + footNotes);
+//        List<XWPFFootnote> footnotes = document.getFootnotes();
+//        FootNote footNotes = new FootNote();
+//        for (XWPFFootnote footnote : footnotes) {
+//            XWPFAbstractFootnoteEndnote footnoteEndnote = footnote;
+//            List<IBodyElement> bodyElements = footnote.getBodyElements();
+//            for (IBodyElement element : bodyElements) {
+//                // 체크하는 element의 타입
+//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+//                        XWPFParagraph paragraph = (XWPFParagraph) element;
+//                        Paragraph para = new Paragraph();
+////                        IBody ibody = docxParserImp.paragraphParse(paragraph, spellCheckerType);
+////                        footNotes.getContent().add(para);
+//                        System.out.println("Paragraph in Footnote: " + paragraph.getText());
+//                    }
+//
+//                } else if (element.getElementType() == BodyElementType.TABLE) {
+//                    XWPFTable table = (XWPFTable) element;
+////                    IBody ibody = docxParserImp.tableParse(table, spellCheckerType);
+////                    footNotes.getContent().add(ibody);
+//                    System.out.println("Table in Footnote");
+//                }
+//            }
+//        }
+//        System.out.println("footNotes = " + footNotes);
         
         
-        System.out.println("footendNotes = "+footendNotes);
-        System.out.println("headerfooterList = "+headerfooterList);
+//        System.out.println("footendNotes = "+footendNotes);
+//        System.out.println("headerfooterList = "+headerfooterList);
 
         fileStream.close();
     }
@@ -143,60 +237,7 @@ public class parseHeaderFooter {
         }
     }
 
-    public static List<String> extractNotes(String text) {
-        List<String> endnotes = new ArrayList<>();
-        // 숫자가 1자리수, 2자리수, 혹은 3자리수일 수 있는 경우를 고려한 정규 표현식
-        Pattern pattern = Pattern.compile("\\[(\\d+):  (.*?)\\]");
-        Matcher matcher = pattern.matcher(text);
 
-        while (matcher.find()) {
-            // 매칭된 주석 내용을 리스트에 추가
-            endnotes.add(matcher.group(2)); // group(2)는 괄호() 안의 주석 내용을 의미
-        }
-
-        return endnotes;
-    }
-        private static StringBuilder removeAllReferences(XWPFParagraph bodyElement, int elementNum) {
-            // 분석, ref 없애고 몇번 paragraph의 어떤 내용이 들어있는지 넣어야함. (맞춤법 검사 돌려야함)
-
-            // original text에서 뒤에 있는 note 추출
-            String note = bodyElement.getFootnoteText();
-            List<String> endnotes = extractNotes(note);
-
-            // original text에서 뒤에 있는 note 제거
-            String paragraphText = bodyElement.getText();
-            String removedNote = paragraphText.replace(note, "");
-
-            // original text사이에 있는 footnoteRef, endnoteRef 제거
-            Pattern pattern = Pattern.compile("\\[(endnoteRef|footnoteRef):(\\d+)\\]");
-            Matcher matcher = pattern.matcher(removedNote);
-
-            // 결과 문자열 초기화 (원본 문자열로 시작)
-            StringBuilder resultText = new StringBuilder(removedNote);
-
-            // 매칭된 결과를 찾으면서 처리
-            int i = 0;
-
-            while (matcher.find()) {
-                Map<String, Object> refEx = new HashMap<>();
-
-                String refType = matcher.group(1);
-                String refNumber = matcher.group(2);
-                refEx.put("elementNum", elementNum);
-                refEx.put("type", refType.replace("Ref", ""));
-                refEx.put("index", refNumber);
-                refEx.put("content", endnotes.get(i)); // endnote.get(i)는 맞춤법 검사를 돌려서 받아와야함. 여기에 api 요청하는 함수 사용해야함
-
-                // 매칭된 부분 문자열 제거
-                int start = matcher.start();
-                int end = matcher.end();
-                resultText.delete(start - (removedNote.length() - resultText.length()), end - (removedNote.length() - resultText.length()));
-
-                footendNotes.add(refEx);
-                i++;
-            }
-            return resultText;
-        }
     public void tableParse(XWPFTable table, int elementNum){
         for (XWPFTableRow row : table.getRows()) {
             for (XWPFTableCell tableCell : row.getTableCells()) {
@@ -231,7 +272,7 @@ public class parseHeaderFooter {
     private void checkInnerFootEndnote(IBodyElement bodyElement, int elementNum) {
             if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
                 // 분석, ref 없애고 몇번 paragraph의 어떤 내용이 들어있는지 넣어야함. (맞춤법 검사 돌려야함)
-                removeAllReferences((XWPFParagraph) bodyElement, elementNum);
+//                removeAllReferences((XWPFParagraph) bodyElement, elementNum);
 
             } else if (bodyElement.getElementType() == BodyElementType.TABLE){
                 tableParse((XWPFTable) bodyElement, elementNum);

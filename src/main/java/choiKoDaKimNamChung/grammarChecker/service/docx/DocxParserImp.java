@@ -4,6 +4,7 @@ package choiKoDaKimNamChung.grammarChecker.service.docx;
 import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
+import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
@@ -29,39 +30,37 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+        Docx docx = new Docx();
 
-        FootNote footNotes = new FootNote();
         for (XWPFFootnote footnote : document.getFootnotes()) {
             for (IBodyElement element : footnote.getBodyElements()) {
                 if (element.getElementType() == BodyElementType.PARAGRAPH) {
                     if (!((XWPFParagraph) element).getText().isEmpty()) {
                         IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
-                        footNotes.getContent().add(ibody);
+                        docx.getFootNote().add(ibody);
                     }
                 } else if (element.getElementType() == BodyElementType.TABLE) {
                     IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
-                    footNotes.getContent().add(ibody);
+                    docx.getFootNote().add(ibody);
                 }
             }
         }
 
-        EndNote endNotes = new EndNote();
         for (XWPFEndnote endnote : document.getEndnotes()) {
             for (IBodyElement element : endnote.getBodyElements()) {
                 if (element.getElementType() == BodyElementType.PARAGRAPH) {
                     if (!((XWPFParagraph) element).getText().isEmpty()) {
                         IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
-                        endNotes.getContent().add(ibody);
+                        docx.getEndNote().add(ibody);
                     }
                 } else if (element.getElementType() == BodyElementType.TABLE) {
                     IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
-                    endNotes.getContent().add(ibody);
+                    docx.getEndNote().add(ibody);
                 }
             }
         }
 
 
-        Docx docx = new Docx();
         List<XWPFHeader> headerList = document.getHeaderList();
         for (XWPFHeader header : headerList) {
             List<IBodyElement> bodyElements = header.getBodyElements();
@@ -147,6 +146,8 @@ public class DocxParserImp implements DocxParser {
         String text = paragraph.getText();
         String url = spellCheckerType.getUrl();
         if(!paragraph.getFootnoteText().isEmpty()){  // 미주, 각주가 있으면
+            ExtractData extractData = new ExtractData();
+
             text = removeAllReferences(paragraph); // ref 제거
         }
         TextRequest textRequest = new TextRequest(text);
@@ -186,7 +187,6 @@ public class DocxParserImp implements DocxParser {
             int start = matcher.start();
             int end = matcher.end();
             resultText.delete(start - (removedNote.length() - resultText.length()), end - (removedNote.length() - resultText.length()));
-
         }
         return resultText;
     }
