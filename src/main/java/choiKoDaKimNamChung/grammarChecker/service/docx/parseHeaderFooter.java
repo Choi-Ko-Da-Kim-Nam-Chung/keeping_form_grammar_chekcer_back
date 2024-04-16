@@ -1,10 +1,9 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.docx.FootNote;
+import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
-import choiKoDaKimNamChung.grammarChecker.docx.Paragraph;
-import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
+import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.w3c.dom.Document;
@@ -40,81 +39,86 @@ public class parseHeaderFooter {
 
 
 
-    public static void extractAll(XWPFParagraph paragraph){
+    public static ExtractNotes extractAll(XWPFParagraph paragraph,  EntireInfo entireInfo){
         ExtractData extractData = new ExtractData();
         String paragraphWithNotes = paragraph.getText();                                // paragraph + ref + note
         String notes = paragraph.getFootnoteText();                                     // note
         String paragraphWithRef = paragraphWithNotes.replace(notes, "");     // paragraph + ref
+
+        // footnoteRef, endnoteRef 제거 및 plainParagraph 처리
         removeReferences(extractData, paragraphWithRef);                                // paragraph
 
+        //
+        ExtractNotes extractNotes = new ExtractNotes();
+        matchReferences(extractNotes, extractData.getNoteList(), notes, entireInfo);
 
+        return extractNotes;
     }
 
+
+    private static void matchReferences(ExtractNotes extractNotes, List<Object[]> ref, String notes, EntireInfo entireInfo) {
+        // \n 까지 확인할 수 있도록 Pattern.DOTALL 추가
+        Pattern pattern = Pattern.compile("\\[(\\d+):  (.*?)\\]", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(notes);
+        int paragraphNoteNum = 0;
+
+
+        while (matcher.find()) {
+            // group(1) => 미주/각주 번호 group(2) => 미주/각주 내용
+
+            // [n:  ] 의 note 의 타입 확인
+            int noteNum = Integer.parseInt(matcher.group(1));
+            IBodyType type = null;
+            if (ref.get(paragraphNoteNum)[0] == "footnoteRef"){
+                type = IBodyType.FOOT_NOTE;
+            }else {
+                type = IBodyType.END_NOTE;
+            }
+            Note note = new Note(noteNum, type);
+
+            // [n:  ] 내부에서  \n 을 기준으로 탐색
+            for (int i = 0; i < matcher.group(2).length(); i++) {
+                if (matcher.group(2).charAt(i) == '\n') {
+                    if (type == IBodyType.FOOT_NOTE) {
+                        note.getContent().add(entireInfo.getDocx().getFootNote().get(noteNum+entireInfo.getFootnoteEnter()-1));
+                        entireInfo.countFootEnter();
+                    } else {
+                        note.getContent().add(entireInfo.getDocx().getEndNote().get(noteNum+entireInfo.getEndnoteEnter()-1));
+                        entireInfo.countEndEnter();
+                    }
+                }
+            }
+            if (type == IBodyType.FOOT_NOTE) {
+                note.getContent().add(entireInfo.getDocx().getFootNote().get(noteNum+entireInfo.getFootnoteEnter()-1));
+            } else {
+                note.getContent().add(entireInfo.getDocx().getEndNote().get(noteNum+entireInfo.getEndnoteEnter()-1));
+            }
+
+            extractNotes.getNoteList().add(note); // group(2)는 괄호() 안의 주석 내용을 의미
+
+            paragraphNoteNum++;
+        }
+    }
+
+    // footnoteRef, endnoteRef 제거 및 plainParagraph 처리
     public static void removeReferences(ExtractData extractData, String paragraphTextWithRef) {
         // original text사이에 있는 footnoteRef, endnoteRef 제거
         Pattern pattern = Pattern.compile("\\[(endnoteRef|footnoteRef):(\\d+)\\]");
-        getPlainTextAndRefNum(extractData, pattern, paragraphTextWithRef);
-    }
 
-    private static void getPlainTextAndRefNum(ExtractData extractData, Pattern pattern, String text) {
-        Matcher matcher = pattern.matcher(text);
-        StringBuilder resultText = new StringBuilder(text);
+        Matcher matcher = pattern.matcher(paragraphTextWithRef);
+        StringBuilder resultText = new StringBuilder(paragraphTextWithRef);
 
         // 매칭된 결과를 찾으면서 처리
         while (matcher.find()) {
             // Ref 번호 삽입
-            System.out.println(matcher.group(1));
-            System.out.println(Integer.parseInt(matcher.group(2)));
             extractData.getNoteList().add(new Object[]{matcher.group(1), Integer.parseInt(matcher.group(2))});
             int start = matcher.start();
             int end = matcher.end();
             // 매칭된 부분 문자열 제거
-            resultText.delete(start - (text.length() - resultText.length()), end - (text.length() - resultText.length()));
+            resultText.delete(start - (paragraphTextWithRef.length() - resultText.length()), end - (paragraphTextWithRef.length() - resultText.length()));
         }
-
         // plainParagraph 삽입
         extractData.setPlainPragraph(String.valueOf(resultText));
-//        System.out.println("extractData = " + extractData);
-//        for (Object[] objects : extractData.getNoteList()) {
-//            System.out.println(Arrays.toString(objects));
-//
-//        }
-    }
-    public List<String> extractNotes(XWPFParagraph paragraph) {
-        List<String> endnotes = new ArrayList<>();
-        String paragraphWithNotes = paragraph.getText();                                // paragraph + ref + note
-        String notes = paragraph.getFootnoteText();                                     // note
-        String paragraphWithRef = paragraphWithNotes.replace(notes, "");     // paragraph + ref
-//        String plainParagraph = removeAllReferences(paragraphWithRef);                  // paragraph
-
-        extractNotes(notes, endnotes);
-
-        return endnotes;
-
-    }
-
-    private static void extractNotes(String notes, List<String> endnotes) {
-        // 숫자가 1자리수, 2자리수, 혹은 3자리수 일 수 있는 경우를 고려한 정규 표현식, \n 까지 확인할 수 있도록 Pattern.DOTALL 추가
-        Pattern pattern = Pattern.compile("\\[(\\d+):  (.*?)\\]", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(notes);
-
-        while (matcher.find()) {
-            // group(1) => 미주/각주 번호 group(2) => 미주/각주 내용
-            System.out.println("matcher.group(1) = " +  Integer.parseInt(matcher.group(1)));
-            int count = 0;
-            for (int i = 0; i < matcher.group(2).length(); i++) {
-                System.out.println(" matcher.group(2).charAt(i) = " +  matcher.group(2).charAt(i));
-                if (matcher.group(2).charAt(i) == '\n') {
-                    count++;
-                }
-            }
-
-            System.out.println("count = " + count);
-            for (String s : matcher.group(2).split("\n")) {
-                System.out.println("s = " + s);
-            }
-            endnotes.add(matcher.group(2)); // group(2)는 괄호() 안의 주석 내용을 의미
-        }
     }
 
     public static void main(String[] args) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
@@ -131,20 +135,23 @@ public class parseHeaderFooter {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        EntireInfo entireInfo = new EntireInfo(new Docx());
+
+        // 현재 미주/각주 전체 오류 메시지에 대한 정보가 없어서 outofbound 오류남.
+        List<IBody> result = new ArrayList<>();
         for (IBodyElement bodyElement : document.getBodyElements()) {
             if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
                 if (!((XWPFParagraph)bodyElement).getFootnoteText().isEmpty()){
-                    System.out.println("text: "+((XWPFParagraph)bodyElement).getFootnoteText());
-                    extractAll((XWPFParagraph) bodyElement);
-                    System.out.println();
+//                    System.out.println("text: "+((XWPFParagraph)bodyElement).getFootnoteText());
+                    result.addAll(extractAll((XWPFParagraph) bodyElement, entireInfo).getNoteList());
+//                    System.out.println();
 //                    for (String s : result) {
 //                        System.out.println("s = " + s);
 //                    }
                 }
-
             }
-
         }
+        System.out.println("result = " + result);
 
         // ------------------------------------------------------------------------------------------------------------------ 파일 로드
 //        headerfooterExtract(document);
@@ -180,8 +187,8 @@ public class parseHeaderFooter {
 //            }
 //        }
 //        System.out.println("footNotes = " + footNotes);
-        
-        
+
+
 //        System.out.println("footendNotes = "+footendNotes);
 //        System.out.println("headerfooterList = "+headerfooterList);
 
