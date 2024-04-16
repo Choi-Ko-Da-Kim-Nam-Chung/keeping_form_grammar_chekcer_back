@@ -23,7 +23,7 @@ public class DocxApplyImp implements DocxApply{
             iBodyParse(bodyElements.get(i), docx.getBody().get(i));
         }
         //footer
-        return null;
+        return document;
     }
 
     @Override
@@ -47,8 +47,9 @@ public class DocxApplyImp implements DocxApply{
                 if (cell.getCTTc().getTcPr().getVMerge() != null && cell.getCTTc().getTcPr().getVMerge().getVal() == null) {
                     continue;
                 }
+                Iterator<IBody> iBody = tCell.next().getIBody().iterator();
                 for (IBodyElement bodyElement : cell.getBodyElements()) {
-                    iBodyParse(bodyElement, tCell.next().getIBody());
+                    iBodyParse(bodyElement, iBody.next());
                 }
             }
         }

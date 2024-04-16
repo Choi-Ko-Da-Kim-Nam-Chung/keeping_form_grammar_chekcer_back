@@ -3,6 +3,9 @@ package choiKoDaKimNamChung.grammarChecker.docx;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 public class TableCell{
@@ -11,5 +14,5 @@ public class TableCell{
     public void plusRowSpan(){
         rowspan++;
     }
-    IBody iBody;
+    List<IBody> iBody = new ArrayList<>();
 }

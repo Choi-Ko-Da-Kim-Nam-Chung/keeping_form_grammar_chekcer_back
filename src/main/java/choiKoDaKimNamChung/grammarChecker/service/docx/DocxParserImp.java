@@ -6,6 +6,7 @@ import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -36,8 +39,8 @@ public class DocxParserImp implements DocxParser {
             }
         }
 
-        List<XWPFParagraph> paragraphs = document.getParagraphs();
-        for (XWPFParagraph paragraph : paragraphs) {
+        List<IBodyElement> paragraphs = document.getBodyElements();
+        for (IBodyElement paragraph : paragraphs) {
             IBody result = iBodyParse(paragraph, spellCheckerType);
             docx.getBody().add(result);
         }
@@ -93,8 +96,9 @@ public class DocxParserImp implements DocxParser {
                     }
                 }
 
+
                 for (IBodyElement bodyElement : cells.get(j).getBodyElements()) {
-                    tableCell.setIBody(iBodyParse(bodyElement, spellCheckerType));
+                    tableCell.getIBody().add(iBodyParse(bodyElement, spellCheckerType));
                 }
                 arr.add(tableCell);
             }
@@ -108,9 +112,12 @@ public class DocxParserImp implements DocxParser {
     public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
         Paragraph result = new Paragraph();
         // TODO : 중간에 미주, 각주가 있을 경우 처리 필요
-
+        String text = paragraph.getText();
         String url = spellCheckerType.getUrl();
-        TextRequest textRequest = new TextRequest(paragraph.getText());
+        if(!paragraph.getFootnoteText().isEmpty()){  // 미주, 각주가 있으면
+            text = removeAllReferences(paragraph); // ref 제거
+        }
+        TextRequest textRequest = new TextRequest(text);
 
         Flux<WordError> response = webClient.post()
                 .uri(url)
@@ -124,6 +131,32 @@ public class DocxParserImp implements DocxParser {
         });
         response.blockLast();
         return result;
+    }
+    public String removeAllReferences(XWPFParagraph bodyElement) {
+        String note = bodyElement.getFootnoteText(); // 뒤에 있는 plain 미주, 각주
+        // original text에서 뒤에 있는 note 제거
+        String paragraphText = bodyElement.getText();
+        String paragraphTextWithRef = paragraphText.replace(note, "");
+
+        // original text사이에 있는 footnoteRef, endnoteRef 제거
+        Pattern pattern = Pattern.compile("\\[(endnoteRef|footnoteRef):(\\d+)\\]");
+        StringBuilder resultText = getPlainText(pattern, paragraphTextWithRef);
+        return String.valueOf(resultText);
+    }
+
+    private static StringBuilder getPlainText(Pattern pattern, String removedNote) {
+        Matcher matcher = pattern.matcher(removedNote);
+        StringBuilder resultText = new StringBuilder(removedNote);
+
+        // 매칭된 결과를 찾으면서 처리
+        while (matcher.find()) {
+            // 매칭된 부분 문자열 제거
+            int start = matcher.start();
+            int end = matcher.end();
+            resultText.delete(start - (removedNote.length() - resultText.length()), end - (removedNote.length() - resultText.length()));
+
+        }
+        return resultText;
     }
 
     @Override
