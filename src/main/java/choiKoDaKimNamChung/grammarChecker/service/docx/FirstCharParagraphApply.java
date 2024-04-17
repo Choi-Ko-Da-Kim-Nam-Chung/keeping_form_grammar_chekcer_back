@@ -5,7 +5,7 @@ import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 public class FirstCharParagraphApply implements ParagraphApply{
 
     @Override
