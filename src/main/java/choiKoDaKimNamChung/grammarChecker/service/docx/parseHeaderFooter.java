@@ -6,6 +6,7 @@ import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -26,16 +27,17 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+@Service
 @RequiredArgsConstructor
 public class parseHeaderFooter {
 
-    static Set<String> footnotesSet = new HashSet<>();
-    static Set<String> endnotesSet = new HashSet<>();
-    static ArrayList<Map<String, Object>> footendNotes = new ArrayList<>();
-    static ArrayList<Map<String, Object>> headerfooterList = new ArrayList<>();
-    static int footnoteEnter = 0;
-    static int endnoteEnter = 0;
-    public static DocxParserImp docxParserImp;
+//    static Set<String> footnotesSet = new HashSet<>();
+//    static Set<String> endnotesSet = new HashSet<>();
+//    static ArrayList<Map<String, Object>> footendNotes = new ArrayList<>();
+//    static ArrayList<Map<String, Object>> headerfooterList = new ArrayList<>();
+//    static int footnoteEnter = 0;
+//    static int endnoteEnter = 0;
+//    public static DocxParserImp docxParserImp;
 
 
 
@@ -80,21 +82,21 @@ public class parseHeaderFooter {
             for (int i = 0; i < matcher.group(2).length(); i++) {
                 if (matcher.group(2).charAt(i) == '\n') {
                     if (type == IBodyType.FOOT_NOTE) {
-                        note.getContent().add(entireInfo.getDocx().getFootNote().get(noteNum+entireInfo.getFootnoteEnter()-1));
+                        note.getError().add(entireInfo.getDocx().getFootNote().get(noteNum+entireInfo.getFootnoteEnter()-1));
                         entireInfo.countFootEnter();
                     } else {
-                        note.getContent().add(entireInfo.getDocx().getEndNote().get(noteNum+entireInfo.getEndnoteEnter()-1));
+                        note.getError().add(entireInfo.getDocx().getEndNote().get(noteNum+entireInfo.getEndnoteEnter()-1));
                         entireInfo.countEndEnter();
                     }
                 }
             }
             if (type == IBodyType.FOOT_NOTE) {
-                note.getContent().add(entireInfo.getDocx().getFootNote().get(noteNum+entireInfo.getFootnoteEnter()-1));
+                note.getError().add(entireInfo.getDocx().getFootNote().get(noteNum+entireInfo.getFootnoteEnter()-1));
             } else {
-                note.getContent().add(entireInfo.getDocx().getEndNote().get(noteNum+entireInfo.getEndnoteEnter()-1));
+                note.getError().add(entireInfo.getDocx().getEndNote().get(noteNum+entireInfo.getEndnoteEnter()-1));
             }
 
-            extractNotes.getNoteList().add(note); // group(2)는 괄호() 안의 주석 내용을 의미
+            extractNotes.getErrorList().addAll(note.getError()); // group(2)는 괄호() 안의 주석 내용을 의미
 
             paragraphNoteNum++;
         }
@@ -137,21 +139,54 @@ public class parseHeaderFooter {
         }
         EntireInfo entireInfo = new EntireInfo(new Docx());
 
-        // 현재 미주/각주 전체 오류 메시지에 대한 정보가 없어서 outofbound 오류남.
-        List<IBody> result = new ArrayList<>();
-        for (IBodyElement bodyElement : document.getBodyElements()) {
-            if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
-                if (!((XWPFParagraph)bodyElement).getFootnoteText().isEmpty()){
-//                    System.out.println("text: "+((XWPFParagraph)bodyElement).getFootnoteText());
-                    result.addAll(extractAll((XWPFParagraph) bodyElement, entireInfo).getNoteList());
-//                    System.out.println();
-//                    for (String s : result) {
-//                        System.out.println("s = " + s);
-//                    }
+        for (XWPFFootnote footnote : document.getFootnotes()) {
+            for (IBodyElement element : footnote.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        System.out.println("footnote = " + ((XWPFParagraph) element).getText());
+//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
+//                        docx.getFootNote().add(ibody);
+                    }
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    System.out.println("footnote = table");
+//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
+//                    docx.getFootNote().add(ibody);
                 }
             }
         }
-        System.out.println("result = " + result);
+
+        for (XWPFEndnote endnote : document.getEndnotes()) {
+            for (IBodyElement element : endnote.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        System.out.println("endnote = " + ((XWPFParagraph) element).getText());
+//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
+//                        docx.getEndNote().add(ibody);
+                    }
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    System.out.println("endnote = table");
+
+//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
+//                    docx.getEndNote().add(ibody);
+                }
+            }
+        }
+
+        // 현재 미주/각주 전체 오류 메시지에 대한 정보가 없어서 outofbound 오류남.
+//        List<IBody> result = new ArrayList<>();
+//        for (IBodyElement bodyElement : document.getBodyElements()) {
+//            if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
+//                if (!((XWPFParagraph)bodyElement).getFootnoteText().isEmpty()){
+////                    System.out.println("text: "+((XWPFParagraph)bodyElement).getFootnoteText());
+//                    result.addAll(extractAll((XWPFParagraph) bodyElement, entireInfo).getNoteList());
+////                    System.out.println();
+////                    for (String s : result) {
+////                        System.out.println("s = " + s);
+////                    }
+//                }
+//            }
+//        }
+//        System.out.println("result = " + result);
 
         // ------------------------------------------------------------------------------------------------------------------ 파일 로드
 //        headerfooterExtract(document);
@@ -214,7 +249,7 @@ public class parseHeaderFooter {
 //                    System.out.println("element = " + element.getElementType());
                 }
                 if (!(headerElement.isEmpty())) {
-                    headerfooterList.add(headerElement);
+//                    headerfooterList.add(headerElement);
                 }
             }
         }
@@ -238,7 +273,7 @@ public class parseHeaderFooter {
 //                    System.out.println("element = " + element.getElementType());
                 }
                 if (!(footerElement.isEmpty())) {
-                    headerfooterList.add(footerElement);
+//                    headerfooterList.add(footerElement);
                 }
             }
         }
