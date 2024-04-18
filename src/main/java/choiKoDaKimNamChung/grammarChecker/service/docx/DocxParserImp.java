@@ -33,70 +33,51 @@ public class DocxParserImp implements DocxParser {
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
         Docx docx = new Docx();
-        File jsonFile = new File("/Users/chtw2001/result.json");  // JSON 파일의 경로
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            docx = mapper.readValue(jsonFile, Docx.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error converting JSON to Java object.");
+        EntireInfo entireInfo = new EntireInfo(docx);
+//        File jsonFile = new File("/Users/chtw2001/result.json");  // 주석까지 매 번 요청하기 좀 그래서 JSON 파일로 넣음
+//        ObjectMapper mapper = new ObjectMapper();
+//        try {
+//            docx = mapper.readValue(jsonFile, Docx.class);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            System.out.println("Error converting JSON to Java object.");
+//        }
+        for (XWPFFootnote footnote : document.getFootnotes()) {
+            for (IBodyElement element : footnote.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType, entireInfo);
+                        docx.getFootNote().add(ibody);
+                    }
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType, entireInfo);
+                    docx.getFootNote().add(ibody);
+                }
+            }
         }
-//        for (XWPFFootnote footnote : document.getFootnotes()) {
-//            for (IBodyElement element : footnote.getBodyElements()) {
-//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
-//                        docx.getFootNote().add(ibody);
-//                    }
-//                } else if (element.getElementType() == BodyElementType.TABLE) {
-//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
-//                    docx.getFootNote().add(ibody);
-//                }
-//            }
-//        }
-//
-//        for (XWPFEndnote endnote : document.getEndnotes()) {
-//            for (IBodyElement element : endnote.getBodyElements()) {
-//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType);
-//                        docx.getEndNote().add(ibody);
-//                    }
-//                } else if (element.getElementType() == BodyElementType.TABLE) {
-//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType);
-//                    docx.getEndNote().add(ibody);
-//                }
-//            }
-//        }
 
-//
-//        List<XWPFHeader> headerList = document.getHeaderList();
-//        for (XWPFHeader header : headerList) {
-//            List<IBodyElement> bodyElements = header.getBodyElements();
-//            for (IBodyElement bodyElement : bodyElements) {
-//                IBody iBody = iBodyParse(bodyElement, spellCheckerType);
-//                docx.getHeader().add(iBody);
-//            }
-//        }
-//        // =>
-//        docx.getFooter().addAll(headerParse(headerList, spellCheckerType));
-//
+        for (XWPFEndnote endnote : document.getEndnotes()) {
+            for (IBodyElement element : endnote.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    if (!((XWPFParagraph) element).getText().isEmpty()) {
+                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType, entireInfo);
+                        docx.getEndNote().add(ibody);
+                    }
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType, entireInfo);
+                    docx.getEndNote().add(ibody);
+                }
+            }
+        }
+
+        docx.getFooter().addAll(headerParse(document.getHeaderList(), spellCheckerType, entireInfo));
+        docx.getHeader().addAll(footerParse(document.getFooterList(), spellCheckerType, entireInfo));
+
         List<IBodyElement> paragraphs = document.getBodyElements();
         for (IBodyElement paragraph : paragraphs) {
             IBody result = iBodyParse(paragraph, spellCheckerType, new EntireInfo(docx));
             docx.getBody().add(result);
         }
-//
-//        List<XWPFFooter> footerList = document.getFooterList();
-//        for (XWPFFooter footer : footerList) {
-//            List<IBodyElement> bodyElements = footer.getBodyElements();
-//            for (IBodyElement bodyElement : bodyElements) {
-//                IBody iBody = iBodyParse(bodyElement, spellCheckerType);
-//                docx.getFooter().add(iBody);
-//            }
-//        }
-//        // =>
-//        docx.getHeader().addAll(footerParse(footerList, spellCheckerType));
 
         return docx;
     }
@@ -204,9 +185,7 @@ public class DocxParserImp implements DocxParser {
         Pattern pattern = Pattern.compile("\\[(\\d+):  (.*?)\\]", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(notes);
         int paragraphNoteNum = 0;
-//        for (Object[] objects : ref) {
-//            System.out.println("objects = " + objects);
-//        }
+
         while (matcher.find()) {
             // group(1) => 미주/각주 번호 group(2) => 미주/각주 내용
             int enter = 0;
@@ -221,99 +200,25 @@ public class DocxParserImp implements DocxParser {
             Note note = new Note(noteNum, type);
 
             // [n:  ] 내부에서  \n 을 기준으로 탐색
-
-
-            System.out.println("matcher.group(2) = " + matcher.group(2));
             for (int i = 0; i < matcher.group(2).length(); i++) {
                 if (matcher.group(2).charAt(i) == '\n') {
                     if (entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1) instanceof Paragraph) {
-                        if (type == IBodyType.FOOT_NOTE) {
-                            if (!((Paragraph) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter()-1)).getErrors().isEmpty()) {
-                                Paragraph para = new Paragraph();
-                                para.getErrors().add(((Paragraph) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getErrors().get(enter));
-                                note.getError().add(para);
-                            } else {
-                                note.getError().add(new Paragraph());
-                            }
-                            entireInfo.countFootEnter();
-                        } else {
-                            if (!((Paragraph) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getErrors().isEmpty()) {
-                                Paragraph para = new Paragraph();
-                                para.getErrors().add(((Paragraph) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getErrors().get(enter));
-                                note.getError().add(para);
-                            } else {
-                                note.getError().add(new Paragraph());
-                            }
-                            entireInfo.countEndEnter();
-                        }
+                        paragraphMatch(entireInfo, type, noteNum, enter, note);
                     } else {
-                        if (type == IBodyType.FOOT_NOTE) {
-                            if (!((Table) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter()-1)).getTable().isEmpty()) {
-                                Table tb = new Table();
-                                tb.setTable(Collections.singletonList(((Table) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getTable().get(0)));
-                                note.getError().add(tb);
-                            } else {
-                                note.getError().add(new Table());
-                            }
-                            entireInfo.countFootEnter();
-                        } else {
-                            if (!((Table) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getTable().isEmpty()) {
-                                Table tb = new Table();
-                                tb.setTable(Collections.singletonList(((Table) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getTable().get(0)));
-                                note.getError().add(tb);
-                            } else {
-                                note.getError().add(new Table());
-                            }
-                            entireInfo.countEndEnter();
-                        }
+                        TableMatch(entireInfo, type, noteNum, note);
                     }
                     enter++;
                 }
             }
-            System.out.println("type = " + type);
-            if (entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1) instanceof Paragraph) {
-                if (type == IBodyType.FOOT_NOTE) {
-                    if (!((Paragraph) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getErrors().isEmpty()) {
-                        Paragraph para = new Paragraph();
-                        para.getErrors().add(((Paragraph) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getErrors().get(enter));
-                        note.getError().add(para);
-                    } else {
-                        note.getError().add(new Paragraph());
-                    }
-                } else {
-                    if (!((Paragraph) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getErrors().isEmpty()) {
-                        Paragraph para = new Paragraph();
-                        para.getErrors().add(((Paragraph) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getErrors().get(enter));
-                        note.getError().add(para);
-                    } else {
-                        note.getError().add(new Paragraph());
-                    }
-                }
-            } else {
-                if (type == IBodyType.FOOT_NOTE) {
-                    if (!((Table) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getTable().isEmpty()) {
-                        Table tb = new Table();
-                        tb.setTable(Collections.singletonList(((Table) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getTable().get(0)));
-                        note.getError().add(tb);
-                    } else {
-                        note.getError().add(new Table());
-                    }
-                } else {
-                    if (!((Table) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getTable().isEmpty()) {
-                        Table tb = new Table();
-                        tb.setTable(Collections.singletonList(((Table) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getTable().get(0)));
-                        note.getError().add(tb);
-                    } else {
-                        note.getError().add(new Table());
-                    }
-                }
-            }
-            System.out.println("enter = " + enter);
-            System.out.println("noteNum = " + noteNum);
-            enter++;
-            System.out.println("hi");
-            extractNotes.getErrorList().addAll(note.getError()); // group(2)는 괄호() 안의 주석 내용을 의미
 
+            if (entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1) instanceof Paragraph) {
+                paragraphMatch(entireInfo, type, noteNum, enter, note);
+            } else {
+                TableMatch(entireInfo, type, noteNum, note);
+            }
+
+            extractNotes.getErrorList().addAll(note.getError()); // group(2)는 괄호() 안의 주석 내용을 의미
+            enter++;
             paragraphNoteNum++;
         }
     }
@@ -338,31 +243,51 @@ public class DocxParserImp implements DocxParser {
         // plainParagraph 삽입
         extractData.setPlainPragraph(String.valueOf(resultText));
     }
-//    public String removeAllReferences(XWPFParagraph bodyElement) {
-//        String note = bodyElement.getFootnoteText(); // 뒤에 있는 plain 미주, 각주
-//        // original text에서 뒤에 있는 note 제거
-//        String paragraphText = bodyElement.getText();
-//        String paragraphTextWithRef = paragraphText.replace(note, "");
-//
-//        // original text사이에 있는 footnoteRef, endnoteRef 제거
-//        Pattern pattern = Pattern.compile("\\[(endnoteRef|footnoteRef):(\\d+)\\]");
-//        StringBuilder resultText = getPlainText(pattern, paragraphTextWithRef);
-//        return resultText.toString();
-//    }
-//
-//    private static StringBuilder getPlainText(Pattern pattern, String removedNote) {
-//        Matcher matcher = pattern.matcher(removedNote);
-//        StringBuilder resultText = new StringBuilder(removedNote);
-//
-//        // 매칭된 결과를 찾으면서 처리
-//        while (matcher.find()) {
-//            // 매칭된 부분 문자열 제거
-//            int start = matcher.start();
-//            int end = matcher.end();
-//            resultText.delete(start - (removedNote.length() - resultText.length()), end - (removedNote.length() - resultText.length()));
-//        }
-//        return resultText;
-//    }
+
+
+    private static void TableMatch(EntireInfo entireInfo, IBodyType type, int noteNum, Note note) {
+        if (type == IBodyType.FOOT_NOTE) {
+            if (!((Table) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter()-1)).getTable().isEmpty()) {
+                Table tb = new Table();
+                tb.setTable(Collections.singletonList(((Table) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getTable().get(0)));
+                note.getError().add(tb);
+            } else {
+                note.getError().add(new Table());
+            }
+            entireInfo.countFootEnter();
+        } else {
+            if (!((Table) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getTable().isEmpty()) {
+                Table tb = new Table();
+                tb.setTable(Collections.singletonList(((Table) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getTable().get(0)));
+                note.getError().add(tb);
+            } else {
+                note.getError().add(new Table());
+            }
+            entireInfo.countEndEnter();
+        }
+    }
+
+    private static void paragraphMatch(EntireInfo entireInfo, IBodyType type, int noteNum, int enter, Note note) {
+        if (type == IBodyType.FOOT_NOTE) {
+            if (!((Paragraph) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter()-1)).getErrors().isEmpty()) {
+                Paragraph para = new Paragraph();
+                para.getErrors().add(((Paragraph) entireInfo.getDocx().getFootNote().get(noteNum + entireInfo.getFootnoteEnter() - 1)).getErrors().get(enter));
+                note.getError().add(para);
+            } else {
+                note.getError().add(new Paragraph());
+            }
+            entireInfo.countFootEnter();
+        } else {
+            if (!((Paragraph) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getErrors().isEmpty()) {
+                Paragraph para = new Paragraph();
+                para.getErrors().add(((Paragraph) entireInfo.getDocx().getEndNote().get(noteNum + entireInfo.getEndnoteEnter() - 1)).getErrors().get(enter));
+                note.getError().add(para);
+            } else {
+                note.getError().add(new Paragraph());
+            }
+            entireInfo.countEndEnter();
+        }
+    }
 
     @Override
     public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType, SpellCheckerType spellCheckerType) {
@@ -370,26 +295,26 @@ public class DocxParserImp implements DocxParser {
     }
 
     @Override
-    public List<IBody> headerParse(List<XWPFHeader> headerList, SpellCheckerType spellCheckerType) {
+    public List<IBody> headerParse(List<XWPFHeader> headerList, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
         List<IBody> result = new ArrayList<>();
-//        for (XWPFHeader header : headerList) {
-//            List<IBodyElement> bodyElements = header.getBodyElements();
-//            for (IBodyElement bodyElement : bodyElements) {
-//                result.add(iBodyParse(bodyElement, spellCheckerType));
-//            }
-//        }
+        for (XWPFHeader header : headerList) {
+            List<IBodyElement> bodyElements = header.getBodyElements();
+            for (IBodyElement bodyElement : bodyElements) {
+                result.add(iBodyParse(bodyElement, spellCheckerType, entireInfo));
+            }
+        }
         return result;
     }
 
     @Override
-    public List<IBody> footerParse(List<XWPFFooter> footerList, SpellCheckerType spellCheckerType) {
+    public List<IBody> footerParse(List<XWPFFooter> footerList, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
         List<IBody> result = new ArrayList<>();
-//        for (XWPFFooter footer : footerList) {
-//            List<IBodyElement> bodyElements = footer.getBodyElements();
-//            for (IBodyElement bodyElement : bodyElements) {
-//                result.add(iBodyParse(bodyElement, spellCheckerType));
-//            }
-//        }
+        for (XWPFFooter footer : footerList) {
+            List<IBodyElement> bodyElements = footer.getBodyElements();
+            for (IBodyElement bodyElement : bodyElements) {
+                result.add(iBodyParse(bodyElement, spellCheckerType, entireInfo));
+            }
+        }
 
         return result;
     }

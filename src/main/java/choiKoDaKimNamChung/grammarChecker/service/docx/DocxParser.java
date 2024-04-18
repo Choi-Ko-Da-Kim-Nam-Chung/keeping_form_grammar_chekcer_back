@@ -19,8 +19,8 @@ public interface DocxParser {
 
     public List<IBody> endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, IBodyType iBodyType, SpellCheckerType spellCheckerType);
 
-    public List<IBody> headerParse(List<XWPFHeader> headerList, SpellCheckerType spellCheckerType);
+    public List<IBody> headerParse(List<XWPFHeader> headerList, SpellCheckerType spellCheckerType, EntireInfo entireInfo);
 
-    public List<IBody> footerParse(List<XWPFFooter> footerList, SpellCheckerType spellCheckerType);
+    public List<IBody> footerParse(List<XWPFFooter> footerList, SpellCheckerType spellCheckerType, EntireInfo entireInfo);
 
 }
