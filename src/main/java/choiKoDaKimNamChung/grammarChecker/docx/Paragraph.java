@@ -13,6 +13,7 @@ public class Paragraph extends IBody {
     public Paragraph() {
         super(IBodyType.PARAGRAPH);
     }
+    String orgStr;
     List<WordError> errors = new ArrayList<>();
     List<IBody> footNoteEndNote = new ArrayList<>();
 }
