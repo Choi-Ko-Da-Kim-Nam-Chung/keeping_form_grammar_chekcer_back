@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,15 +32,14 @@ public class SpellCheckerController {
 
     @PostMapping("/grammar-check/docx/scan")
     public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file,
-                                                     @RequestParam("type") SpellCheckerType type){
+                                                     @RequestParam("type") SpellCheckerType type)
+            throws ExecutionException, InterruptedException {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        List<List<Object>> list = new ArrayList<>();
-        ObjectMapper mapper = new ObjectMapper();
         Docx spellCheckResponseDTO = docxParser.docxParse(document, type);
         return ResponseEntity.ok(spellCheckResponseDTO);
     }

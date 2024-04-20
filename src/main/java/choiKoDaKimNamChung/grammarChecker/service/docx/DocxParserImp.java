@@ -22,6 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,55 +36,58 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+//        File jsonFile = new File("/Users/chtw2001/result.json");  // 주석까지 매 번 요청하기 좀 그래서 JSON 파일로 넣음
+//        ObjectMapper mapper = new ObjectMapper();
+//        try {
+//            docx = mapper.readValue(jsonFile, Docx.class);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            System.out.println("Error converting JSON to Java object.");
+//        }
+
         Docx docx = new Docx();
         EntireInfo entireInfo = new EntireInfo(docx);
-        File jsonFile = new File("/Users/chtw2001/result.json");  // 주석까지 매 번 요청하기 좀 그래서 JSON 파일로 넣음
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            docx = mapper.readValue(jsonFile, Docx.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error converting JSON to Java object.");
-        }
-//        for (XWPFFootnote footnote : document.getFootnotes()) {
-//            for (IBodyElement element : footnote.getBodyElements()) {
-//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType, entireInfo);
-//                        docx.getFootNote().add(ibody);
-//                    }
-//                } else if (element.getElementType() == BodyElementType.TABLE) {
-//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType, entireInfo);
-//                    docx.getFootNote().add(ibody);
-//                }
-//            }
-//        }
-
-//        for (XWPFEndnote endnote : document.getEndnotes()) {
-//            for (IBodyElement element : endnote.getBodyElements()) {
-//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType, entireInfo);
-//                        docx.getEndNote().add(ibody);
-//                    }
-//                } else if (element.getElementType() == BodyElementType.TABLE) {
-//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType, entireInfo);
-//                    docx.getEndNote().add(ibody);
-//                }
-//            }
-//        }
-//
-//        docx.getFooter().addAll(headerParse(document.getHeaderList(), spellCheckerType, entireInfo));
-//        docx.getHeader().addAll(footerParse(document.getFooterList(), spellCheckerType, entireInfo));
 
         List<IBodyElement> paragraphs = document.getBodyElements();
+        List<CompletableFuture<IBody>> futures = new ArrayList<>();
+
         for (IBodyElement paragraph : paragraphs) {
-            IBody result = iBodyParse(paragraph, spellCheckerType, new EntireInfo(docx));
-            docx.getBody().add(result);
+            CompletableFuture<IBody> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return iBodyParse(paragraph, spellCheckerType, entireInfo);
+                } catch (Exception e) {
+                    System.err.println("Error processing paragraph: " + e.getMessage());
+                    return null;
+                }
+            }, ForkJoinPool.commonPool());
+
+            futures.add(future);
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenAccept((Void) -> {
+                    futures.forEach(future -> {
+                        try {
+                            IBody iBody = future.get();
+                            if (iBody != null) {
+                                synchronized (docx.getBody()) {
+                                    docx.getBody().add(iBody);
+                                }
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }).join();
+
+
+//        for (IBodyElement paragraph : paragraphs) {
+//            docx.getBody().add(iBodyParse(paragraph, spellCheckerType, entireInfo));
+//        }
 
         return docx;
     }
+
 
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
@@ -159,6 +166,7 @@ public class DocxParserImp implements DocxParser {
         response.subscribe(wordError -> {
             result.getErrors().add(wordError);
         });
+
         response.blockLast();
         return result;
     }
