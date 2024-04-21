@@ -11,9 +11,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -22,8 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class SpellCheckerController {
 
     private final DocxParser docxParser;
@@ -41,6 +40,7 @@ public class SpellCheckerController {
         List<List<Object>> list = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         Docx spellCheckResponseDTO = docxParser.docxParse(document, type);
+        System.out.println("spellCheckResponseDTO = " + spellCheckResponseDTO);
         return ResponseEntity.ok(spellCheckResponseDTO);
     }
 
