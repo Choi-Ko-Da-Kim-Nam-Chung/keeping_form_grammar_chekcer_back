@@ -28,8 +28,10 @@ public class DocxParserImp implements DocxParser {
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
         ExecutorService executor = Executors.newFixedThreadPool(5);
         Docx docx = new Docx();
-
         for (XWPFFootnote footnote : document.getFootnotes()) {
+            if (footnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || footnote.getCTFtnEdn().toString().contains("<w:separator/>")){
+                continue;
+            }
             ArrayList<IBody> note = new ArrayList<>();
             docx.getFootNote().add(note);
             for (IBodyElement element : footnote.getBodyElements()) {
@@ -38,6 +40,9 @@ public class DocxParserImp implements DocxParser {
         }
 
         for (XWPFEndnote endnote : document.getEndnotes()) {
+            if (endnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || endnote.getCTFtnEdn().toString().contains("<w:separator/>")){
+                continue;
+            }
             ArrayList<IBody> note = new ArrayList<>();
             docx.getEndNote().add(note);
             for (IBodyElement element : endnote.getBodyElements()) {
@@ -77,10 +82,6 @@ public class DocxParserImp implements DocxParser {
                 }).join();
 
         executor.shutdown();
-//        for (IBodyElement paragraph : paragraphs) {
-//            docx.getBody().add(iBodyParse(paragraph, spellCheckerType, entireInfo));
-//            System.out.println("count : " + count++);
-//        }
 
         docx.getFooter().addAll(headerParse(document.getHeaderList(), spellCheckerType));
         docx.getHeader().addAll(footerParse(document.getFooterList(), spellCheckerType));
