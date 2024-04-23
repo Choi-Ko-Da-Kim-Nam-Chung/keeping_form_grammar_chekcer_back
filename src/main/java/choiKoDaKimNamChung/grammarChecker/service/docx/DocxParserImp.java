@@ -26,14 +26,6 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
-//        File jsonFile = new File("/Users/chtw2001/result.json");  // 주석까지 매 번 요청하기 좀 그래서 JSON 파일로 넣음
-//        ObjectMapper mapper = new ObjectMapper();
-//        try {
-//            docx = mapper.readValue(jsonFile, Docx.class);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            System.out.println("Error converting JSON to Java object.");
-//        }
         ExecutorService executor = Executors.newFixedThreadPool(5);
         Docx docx = new Docx();
         EntireInfo entireInfo = new EntireInfo(docx);
