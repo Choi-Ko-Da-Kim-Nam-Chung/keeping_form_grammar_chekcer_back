@@ -14,5 +14,6 @@ public class Paragraph extends IBody {
         super(IBodyType.PARAGRAPH);
     }
     List<WordError> errors = new ArrayList<>();
-    List<IBody> footNoteEndNote = new ArrayList<>();
+    List<NoteInfo> notes = new ArrayList<>();
+
 }

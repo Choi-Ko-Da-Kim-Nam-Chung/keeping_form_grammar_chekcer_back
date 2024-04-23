@@ -1,7 +1,6 @@
 package choiKoDaKimNamChung.grammarChecker.response;
 
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
-import choiKoDaKimNamChung.grammarChecker.docx.Note;
 import lombok.Data;
 
 import java.util.ArrayList;
