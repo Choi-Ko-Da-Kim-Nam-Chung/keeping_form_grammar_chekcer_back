@@ -17,28 +17,27 @@ public class DocxApplyImp implements DocxApply{
     private final ParagraphApply paragraphApply;
     @Override
     public XWPFDocument docxParse(XWPFDocument document, Docx docx) {
-        EntireInfo entireInfo = new EntireInfo(docx);
 
         //header
-        headerParse(document.getHeaderList(), docx.getHeader(), entireInfo);
+        headerParse(document.getHeaderList(), docx.getHeader());
 
         List<IBodyElement> bodyElements = document.getBodyElements();
         for(int i=0; i<docx.getBody().size(); i++){
-            iBodyParse(bodyElements.get(i), docx.getBody().get(i), entireInfo);
+            iBodyParse(bodyElements.get(i), docx.getBody().get(i));
         }
 
         //footer
-        footerParse(document.getFooterList(), docx.getFooter(), entireInfo);
+        footerParse(document.getFooterList(), docx.getFooter());
 
         return document;
     }
 
     @Override
-    public void iBodyParse(IBodyElement bodyElement, IBody iBody, EntireInfo entireInfo) {
+    public void iBodyParse(IBodyElement bodyElement, IBody iBody) {
         if (iBody.getType() == IBodyType.PARAGRAPH){
-            paragraphApply.paragraphParse((XWPFParagraph) bodyElement,(Paragraph) iBody, entireInfo);
+            paragraphApply.paragraphParse((XWPFParagraph) bodyElement,(Paragraph) iBody);
         }else if(iBody.getType() == IBodyType.TABLE){
-            tableParse((XWPFTable) bodyElement,(Table) iBody, entireInfo);
+            tableParse((XWPFTable) bodyElement,(Table) iBody);
         }else{
 
         }
@@ -46,7 +45,7 @@ public class DocxApplyImp implements DocxApply{
     }
 
     @Override
-    public void tableParse(XWPFTable table, Table t, EntireInfo entireInfo) {
+    public void tableParse(XWPFTable table, Table t) {
         Iterator<List<TableCell>> tRow = t.getTable().iterator();
         for (XWPFTableRow row : table.getRows()) {
             Iterator<TableCell> tCell = tRow.next().iterator();
@@ -56,28 +55,28 @@ public class DocxApplyImp implements DocxApply{
                 }
                 Iterator<IBody> iBody = tCell.next().getIBody().iterator();
                 for (IBodyElement bodyElement : cell.getBodyElements()) {
-                    iBodyParse(bodyElement, iBody.next(), entireInfo);
+                    iBodyParse(bodyElement, iBody.next());
                 }
             }
         }
     }
 
     @Override
-    public void endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, List<IBody> iBodyList, EntireInfo entireInfo) {
+    public void endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, List<IBody> iBodyList) {
 
     }
 
     @Override
-    public void headerParse(List<XWPFHeader> headerList, List<IBody> parsedHeaderList, EntireInfo entireInfo) {
+    public void headerParse(List<XWPFHeader> headerList, List<IBody> parsedHeaderList) {
         for(int i=0; i<parsedHeaderList.size(); i++){
-            iBodyParse((IBodyElement) headerList.get(i), parsedHeaderList.get(i), entireInfo);
+            iBodyParse((IBodyElement) headerList.get(i), parsedHeaderList.get(i));
         }
     }
 
     @Override
-    public void footerParse(List<XWPFFooter> footerList, List<IBody> parsedFooterList, EntireInfo entireInfo) {
+    public void footerParse(List<XWPFFooter> footerList, List<IBody> parsedFooterList) {
         for(int i=0; i<parsedFooterList.size(); i++){
-            iBodyParse((IBodyElement) footerList.get(i), parsedFooterList.get(i), entireInfo);
+            iBodyParse((IBodyElement) footerList.get(i), parsedFooterList.get(i));
         }
     }
 }
