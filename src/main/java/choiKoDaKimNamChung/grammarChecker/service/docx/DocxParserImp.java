@@ -1,31 +1,21 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-
 import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,22 +34,24 @@ public class DocxParserImp implements DocxParser {
 //            e.printStackTrace();
 //            System.out.println("Error converting JSON to Java object.");
 //        }
-
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         Docx docx = new Docx();
         EntireInfo entireInfo = new EntireInfo(docx);
 
         List<IBodyElement> paragraphs = document.getBodyElements();
         List<CompletableFuture<IBody>> futures = new ArrayList<>();
 
+        int count = 0;
+
         for (IBodyElement paragraph : paragraphs) {
+            System.out.println("count : " + count++);
             CompletableFuture<IBody> future = CompletableFuture.supplyAsync(() -> {
                 try {
                     return iBodyParse(paragraph, spellCheckerType, entireInfo);
                 } catch (Exception e) {
-                    System.err.println("Error processing paragraph: " + e.getMessage());
                     return null;
                 }
-            }, ForkJoinPool.commonPool());
+            }, executor);
 
             futures.add(future);
         }
@@ -80,15 +72,14 @@ public class DocxParserImp implements DocxParser {
                     });
                 }).join();
 
-
+        executor.shutdown();
 //        for (IBodyElement paragraph : paragraphs) {
 //            docx.getBody().add(iBodyParse(paragraph, spellCheckerType, entireInfo));
+//            System.out.println("count : " + count++);
 //        }
 
         return docx;
     }
-
-
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
         if (bodyElement.getElementType() == BodyElementType.PARAGRAPH) {
@@ -144,7 +135,6 @@ public class DocxParserImp implements DocxParser {
     @Override
     public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
         Paragraph result = new Paragraph();
-        // TODO : 중간에 미주, 각주가 있을 경우 처리 필요
         String text = paragraph.getText();
 //        System.out.println("text = " + text);
         String url = spellCheckerType.getUrl();
