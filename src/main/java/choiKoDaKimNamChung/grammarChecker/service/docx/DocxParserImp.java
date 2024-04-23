@@ -41,10 +41,7 @@ public class DocxParserImp implements DocxParser {
         List<IBodyElement> paragraphs = document.getBodyElements();
         List<CompletableFuture<IBody>> futures = new ArrayList<>();
 
-        int count = 0;
-
         for (IBodyElement paragraph : paragraphs) {
-            System.out.println("count : " + count++);
             CompletableFuture<IBody> future = CompletableFuture.supplyAsync(() -> {
                 try {
                     return iBodyParse(paragraph, spellCheckerType, entireInfo);
