@@ -5,9 +5,10 @@ import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import org.apache.poi.xwpf.usermodel.*;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public interface DocxParser {
-    public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType);
+    public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) throws ExecutionException, InterruptedException;
 
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType, EntireInfo entireInfo);
 

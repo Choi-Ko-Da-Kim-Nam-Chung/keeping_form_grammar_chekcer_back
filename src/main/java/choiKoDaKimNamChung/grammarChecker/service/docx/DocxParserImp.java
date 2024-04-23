@@ -1,27 +1,21 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-
 import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,56 +26,49 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         Docx docx = new Docx();
         EntireInfo entireInfo = new EntireInfo(docx);
-        File jsonFile = new File("/Users/chtw2001/result.json");  // 주석까지 매 번 요청하기 좀 그래서 JSON 파일로 넣음
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            docx = mapper.readValue(jsonFile, Docx.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error converting JSON to Java object.");
-        }
-//        for (XWPFFootnote footnote : document.getFootnotes()) {
-//            for (IBodyElement element : footnote.getBodyElements()) {
-//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType, entireInfo);
-//                        docx.getFootNote().add(ibody);
-//                    }
-//                } else if (element.getElementType() == BodyElementType.TABLE) {
-//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType, entireInfo);
-//                    docx.getFootNote().add(ibody);
-//                }
-//            }
-//        }
-
-//        for (XWPFEndnote endnote : document.getEndnotes()) {
-//            for (IBodyElement element : endnote.getBodyElements()) {
-//                if (element.getElementType() == BodyElementType.PARAGRAPH) {
-//                    if (!((XWPFParagraph) element).getText().isEmpty()) {
-//                        IBody ibody = paragraphParse((XWPFParagraph) element, spellCheckerType, entireInfo);
-//                        docx.getEndNote().add(ibody);
-//                    }
-//                } else if (element.getElementType() == BodyElementType.TABLE) {
-//                    IBody ibody = tableParse((XWPFTable) element, spellCheckerType, entireInfo);
-//                    docx.getEndNote().add(ibody);
-//                }
-//            }
-//        }
-//
-//        docx.getFooter().addAll(headerParse(document.getHeaderList(), spellCheckerType, entireInfo));
-//        docx.getHeader().addAll(footerParse(document.getFooterList(), spellCheckerType, entireInfo));
 
         List<IBodyElement> paragraphs = document.getBodyElements();
+        List<CompletableFuture<IBody>> futures = new ArrayList<>();
+
         for (IBodyElement paragraph : paragraphs) {
-            IBody result = iBodyParse(paragraph, spellCheckerType, new EntireInfo(docx));
-            docx.getBody().add(result);
+            CompletableFuture<IBody> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return iBodyParse(paragraph, spellCheckerType, entireInfo);
+                } catch (Exception e) {
+                    return null;
+                }
+            }, executor);
+
+            futures.add(future);
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenAccept((Void) -> {
+                    futures.forEach(future -> {
+                        try {
+                            IBody iBody = future.get();
+                            if (iBody != null) {
+                                synchronized (docx.getBody()) {
+                                    docx.getBody().add(iBody);
+                                }
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }).join();
+
+        executor.shutdown();
+//        for (IBodyElement paragraph : paragraphs) {
+//            docx.getBody().add(iBodyParse(paragraph, spellCheckerType, entireInfo));
+//            System.out.println("count : " + count++);
+//        }
 
         return docx;
     }
-
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
         if (bodyElement.getElementType() == BodyElementType.PARAGRAPH) {
@@ -137,7 +124,6 @@ public class DocxParserImp implements DocxParser {
     @Override
     public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType, EntireInfo entireInfo) {
         Paragraph result = new Paragraph();
-        // TODO : 중간에 미주, 각주가 있을 경우 처리 필요
         String text = paragraph.getText();
 //        System.out.println("text = " + text);
         String url = spellCheckerType.getUrl();
@@ -159,6 +145,7 @@ public class DocxParserImp implements DocxParser {
         response.subscribe(wordError -> {
             result.getErrors().add(wordError);
         });
+
         response.blockLast();
         result.setOrgStr(text);
         return result;
