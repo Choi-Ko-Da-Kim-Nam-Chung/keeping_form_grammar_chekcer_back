@@ -160,6 +160,7 @@ public class DocxParserImp implements DocxParser {
             result.getErrors().add(wordError);
         });
         response.blockLast();
+        result.setOrgStr(text);
         return result;
     }
 
