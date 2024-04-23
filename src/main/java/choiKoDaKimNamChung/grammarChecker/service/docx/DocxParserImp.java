@@ -147,6 +147,7 @@ public class DocxParserImp implements DocxParser {
         });
 
         response.blockLast();
+        result.setOrgStr(text);
         return result;
     }
 
