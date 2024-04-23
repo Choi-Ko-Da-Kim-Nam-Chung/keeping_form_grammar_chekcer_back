@@ -1,27 +1,21 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-
 import choiKoDaKimNamChung.grammarChecker.docx.*;
 import choiKoDaKimNamChung.grammarChecker.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
 import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +26,7 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         Docx docx = new Docx();
 
         for (XWPFFootnote footnote : document.getFootnotes()) {
@@ -51,17 +46,47 @@ public class DocxParserImp implements DocxParser {
         }
 
         List<IBodyElement> paragraphs = document.getBodyElements();
+        List<CompletableFuture<IBody>> futures = new ArrayList<>();
+
         for (IBodyElement paragraph : paragraphs) {
-            IBody result = iBodyParse(paragraph, spellCheckerType);
-            docx.getBody().add(result);
+            CompletableFuture<IBody> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return iBodyParse(paragraph, spellCheckerType);
+                } catch (Exception e) {
+                    return null;
+                }
+            }, executor);
+
+            futures.add(future);
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenAccept((Void) -> {
+                    futures.forEach(future -> {
+                        try {
+                            IBody iBody = future.get();
+                            if (iBody != null) {
+                                synchronized (docx.getBody()) {
+                                    docx.getBody().add(iBody);
+                                }
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }).join();
+
+        executor.shutdown();
+//        for (IBodyElement paragraph : paragraphs) {
+//            docx.getBody().add(iBodyParse(paragraph, spellCheckerType, entireInfo));
+//            System.out.println("count : " + count++);
+//        }
 
         docx.getFooter().addAll(headerParse(document.getHeaderList(), spellCheckerType));
         docx.getHeader().addAll(footerParse(document.getFooterList(), spellCheckerType));
 
         return docx;
     }
-
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType) {
         if (bodyElement.getElementType() == BodyElementType.PARAGRAPH) {
@@ -117,6 +142,7 @@ public class DocxParserImp implements DocxParser {
     @Override
     public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
         Paragraph result;
+
         if(!paragraph.getFootnoteText().isEmpty()){  // 미주, 각주가 있으면
             result = removeReferences(paragraph.getParagraphText());
 
@@ -138,6 +164,7 @@ public class DocxParserImp implements DocxParser {
         response.subscribe(wordError -> {
             result.getErrors().add(wordError);
         });
+
         response.blockLast();
 
         return result;
