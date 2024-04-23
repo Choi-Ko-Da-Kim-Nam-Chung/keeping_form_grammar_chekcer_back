@@ -17,7 +17,7 @@ public interface DocxApply {
 
     public void endNoteFootNoteParse(XWPFAbstractFootnoteEndnote note, List<IBody> iBodyList);
 
-    public void headerParse(XWPFHeader header, List<IBody> iBodyList);
+    public void headerParse(List<XWPFHeader> headerList, List<IBody> parsedHeaderList);
 
-    public void footerParse(XWPFFooter footer, List<IBody> iBodyList);
+    public void footerParse(List<XWPFFooter> footerList, List<IBody> parsedFooterList);
 }

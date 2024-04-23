@@ -43,7 +43,6 @@ public class SpellCheckerController {
         System.out.println("spellCheckResponseDTO = " + spellCheckResponseDTO);
         return ResponseEntity.ok(spellCheckResponseDTO);
     }
-
     @PostMapping("/grammar-check/docx/apply")
     public ResponseEntity<InputStreamResource> grammarCheckDocxApply(@RequestPart("file") MultipartFile file, @RequestPart("data") Docx docx) {
         XWPFDocument document;

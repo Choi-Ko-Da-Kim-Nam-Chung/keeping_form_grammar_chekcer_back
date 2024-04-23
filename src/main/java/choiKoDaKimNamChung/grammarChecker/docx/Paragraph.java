@@ -15,5 +15,6 @@ public class Paragraph extends IBody {
     }
     String orgStr;
     List<WordError> errors = new ArrayList<>();
-    List<IBody> footNoteEndNote = new ArrayList<>();
+    List<NoteInfo> notes = new ArrayList<>();
+
 }

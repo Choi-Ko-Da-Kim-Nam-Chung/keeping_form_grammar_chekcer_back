@@ -17,12 +17,18 @@ public class DocxApplyImp implements DocxApply{
     private final ParagraphApply paragraphApply;
     @Override
     public XWPFDocument docxParse(XWPFDocument document, Docx docx) {
+
         //header
+        headerParse(document.getHeaderList(), docx.getHeader());
+
         List<IBodyElement> bodyElements = document.getBodyElements();
         for(int i=0; i<docx.getBody().size(); i++){
             iBodyParse(bodyElements.get(i), docx.getBody().get(i));
         }
+
         //footer
+        footerParse(document.getFooterList(), docx.getFooter());
+
         return document;
     }
 
@@ -61,12 +67,16 @@ public class DocxApplyImp implements DocxApply{
     }
 
     @Override
-    public void headerParse(XWPFHeader header, List<IBody> iBodyList) {
-
+    public void headerParse(List<XWPFHeader> headerList, List<IBody> parsedHeaderList) {
+        for(int i=0; i<parsedHeaderList.size(); i++){
+            iBodyParse((IBodyElement) headerList.get(i), parsedHeaderList.get(i));
+        }
     }
 
     @Override
-    public void footerParse(XWPFFooter footer, List<IBody> iBodyList) {
-
+    public void footerParse(List<XWPFFooter> footerList, List<IBody> parsedFooterList) {
+        for(int i=0; i<parsedFooterList.size(); i++){
+            iBodyParse((IBodyElement) footerList.get(i), parsedFooterList.get(i));
+        }
     }
 }
