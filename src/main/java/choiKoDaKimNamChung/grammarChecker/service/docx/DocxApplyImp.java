@@ -21,9 +21,36 @@ public class DocxApplyImp implements DocxApply{
         //header
         headerParse(document.getHeaderList(), docx.getHeader());
 
+        //body
         List<IBodyElement> bodyElements = document.getBodyElements();
         for(int i=0; i<docx.getBody().size(); i++){
             iBodyParse(bodyElements.get(i), docx.getBody().get(i));
+        }
+
+        //footnote
+        int i = 0;
+        for (XWPFFootnote footnote : document.getFootnotes()) {
+            if (footnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || footnote.getCTFtnEdn().toString().contains("<w:separator/>")){
+                continue;
+            }
+            List<IBody> footNoteElements = docx.getFootNote().get(i);
+            for(int j = 0;j<footnote.getBodyElements().size();j++){
+                iBodyParse(footnote.getBodyElements().get(j), footNoteElements.get(j));
+            }
+            i++;
+        }
+
+        //endnote
+        i = 0;
+        for (XWPFEndnote endnote : document.getEndnotes()) {
+            if (endnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || endnote.getCTFtnEdn().toString().contains("<w:separator/>")){
+                continue;
+            }
+            List<IBody> endNoteElements = docx.getEndNote().get(i);
+            for(int j = 0;j<endnote.getBodyElements().size();j++){
+                iBodyParse(endnote.getBodyElements().get(j), endNoteElements.get(j));
+            }
+            i++;
         }
 
         //footer
@@ -69,14 +96,22 @@ public class DocxApplyImp implements DocxApply{
     @Override
     public void headerParse(List<XWPFHeader> headerList, List<IBody> parsedHeaderList) {
         for(int i=0; i<parsedHeaderList.size(); i++){
-            iBodyParse((IBodyElement) headerList.get(i), parsedHeaderList.get(i));
+            XWPFHeader header = headerList.get(i);
+            IBody parsedHeader = parsedHeaderList.get(i);
+            for (IBodyElement element : header.getBodyElements()) {
+                iBodyParse(element, parsedHeader);
+            }
         }
     }
 
     @Override
     public void footerParse(List<XWPFFooter> footerList, List<IBody> parsedFooterList) {
         for(int i=0; i<parsedFooterList.size(); i++){
-            iBodyParse((IBodyElement) footerList.get(i), parsedFooterList.get(i));
+            XWPFFooter footer = footerList.get(i);
+            IBody parsedFooter = parsedFooterList.get(i);
+            for (IBodyElement element : footer.getBodyElements()) {
+                iBodyParse(element, parsedFooter);
+            }
         }
     }
 }
