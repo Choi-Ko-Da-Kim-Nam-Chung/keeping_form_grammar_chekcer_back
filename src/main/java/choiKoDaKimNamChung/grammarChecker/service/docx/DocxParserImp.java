@@ -83,8 +83,8 @@ public class DocxParserImp implements DocxParser {
 
         executor.shutdown();
 
-        docx.getFooter().addAll(headerParse(document.getHeaderList(), spellCheckerType));
-        docx.getHeader().addAll(footerParse(document.getFooterList(), spellCheckerType));
+        docx.getFooter().addAll(footerParse(document.getFooterList(), spellCheckerType));
+        docx.getHeader().addAll(headerParse(document.getHeaderList(), spellCheckerType));
 
         return docx;
     }
