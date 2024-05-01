@@ -162,11 +162,8 @@ public class DocxParserImp implements DocxParser {
                 .retrieve()
                 .bodyToFlux(WordError.class);
 
-        response.subscribe(wordError -> {
-            result.getErrors().add(wordError);
-        });
-
-        response.blockLast();
+        List<WordError> errors = response.collectList().block();
+        result.getErrors().addAll(errors);
 
         return result;
     }
