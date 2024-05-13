@@ -1,7 +1,7 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.docx.*;
-import choiKoDaKimNamChung.grammarChecker.docx.IBody;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
 import org.apache.poi.xwpf.usermodel.*;
 
 import java.util.List;

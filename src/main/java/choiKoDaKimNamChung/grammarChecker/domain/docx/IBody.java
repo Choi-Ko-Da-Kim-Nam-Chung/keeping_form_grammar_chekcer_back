@@ -1,14 +1,10 @@
-package choiKoDaKimNamChung.grammarChecker.docx;
+package choiKoDaKimNamChung.grammarChecker.domain.docx;
 
-import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 
 @JsonTypeInfo(

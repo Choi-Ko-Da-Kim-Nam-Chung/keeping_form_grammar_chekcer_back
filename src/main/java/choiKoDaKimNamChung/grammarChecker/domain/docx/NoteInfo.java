@@ -1,4 +1,4 @@
-package choiKoDaKimNamChung.grammarChecker.docx;
+package choiKoDaKimNamChung.grammarChecker.domain.docx;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

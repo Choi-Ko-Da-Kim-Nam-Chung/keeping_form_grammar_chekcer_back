@@ -1,8 +1,7 @@
-package choiKoDaKimNamChung.grammarChecker.docx;
+package choiKoDaKimNamChung.grammarChecker.domain.docx;
 
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;

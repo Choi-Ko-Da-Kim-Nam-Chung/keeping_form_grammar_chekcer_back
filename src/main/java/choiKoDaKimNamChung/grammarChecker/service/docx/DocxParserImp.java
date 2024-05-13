@@ -1,10 +1,8 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.docx.*;
-import choiKoDaKimNamChung.grammarChecker.docx.IBody;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
-import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
-import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;

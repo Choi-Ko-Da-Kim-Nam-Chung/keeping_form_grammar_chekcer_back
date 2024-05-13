@@ -1,24 +1,20 @@
 package choiKoDaKimNamChung.grammarChecker.controller;
 
-import choiKoDaKimNamChung.grammarChecker.docx.Docx;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.Docx;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxApply;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
-import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.SpellCheckerType;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController

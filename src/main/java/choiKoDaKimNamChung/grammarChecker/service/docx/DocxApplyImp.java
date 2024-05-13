@@ -1,9 +1,7 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.docx.*;
-
-import choiKoDaKimNamChung.grammarChecker.docx.IBody;
-import choiKoDaKimNamChung.grammarChecker.response.WordError;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Service;
