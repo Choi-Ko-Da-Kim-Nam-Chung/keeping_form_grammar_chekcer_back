@@ -83,7 +83,6 @@ public class SpellCheckerController {
             throw new RuntimeException("파일을 처리하는 도중 오류가 발생했습니다.", e);
         }
         Hwp hwp = hwpParser.hwpParse(hwpFile, type);
-        System.out.println("hwp = " + hwp);
         return ResponseEntity.ok(hwp);
     }
 }
