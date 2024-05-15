@@ -10,11 +10,17 @@ import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Row;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.text.ParaText;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class HwpApply {
+
+    private final EditDistanceParagraphTextApply editDistanceParagraphTextApply;
 
     public HWPFile hwpApply(HWPFile hwpfile, Hwp hwp) {
         Iterator<IBody> iter = hwp.getBody().iterator();
