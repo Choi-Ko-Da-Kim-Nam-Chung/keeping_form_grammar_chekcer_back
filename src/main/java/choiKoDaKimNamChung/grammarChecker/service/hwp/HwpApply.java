@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HwpApply {
 
-    private final EditDistanceParagraphTextApply editDistanceParagraphTextApply;
+    private final EditDistanceParagraphTextApply paragraphTextApply;
 
     public HWPFile hwpApply(HWPFile hwpfile, Hwp hwp) {
         Iterator<IBody> iter = hwp.getBody().iterator();
@@ -43,12 +43,12 @@ public class HwpApply {
                 }
             }
         }
-        paraTextApply(paragraph.getText(), (ParagraphText)iBody);
+        paraTextApply(paragraph, (ParagraphText)iBody);
     }
 
-    public void paraTextApply(ParaText paraText, ParagraphText paragraphText){
+    public void paraTextApply(Paragraph paragraph, ParagraphText paragraphText){
         try{
-            //적용
+            paragraphTextApply.paragraphParse(paragraph, paragraphText);
         }catch(Exception e){
             System.out.println("e.getMessage() = " + e.getMessage());
         }
