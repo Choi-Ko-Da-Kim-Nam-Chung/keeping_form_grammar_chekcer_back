@@ -37,8 +37,10 @@ public class EditDistanceParagraphApply implements ParagraphApply{
                 if(edit==Edit.CASCADE){
                     sb.setCharAt(runEditIndex--, error.getReplaceStr().charAt(replaceEditIndex--));
                 } else if (edit == Edit.DELETE) {
+                    charIdx--;
                     sb.deleteCharAt(runEditIndex--);
                 } else if(edit == Edit.ADD){
+                    charIdx++;
                     sb.insert(runEditIndex + 1, error.getReplaceStr().charAt(replaceEditIndex--));
                 } else{
                     runEditIndex--;
