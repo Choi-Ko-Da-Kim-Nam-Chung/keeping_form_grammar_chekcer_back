@@ -26,31 +26,35 @@ public class DocxParserImp implements DocxParser {
     private final WebClient webClient;
     @Override
     public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
-        ExecutorService executor = Executors.newFixedThreadPool(5);
         Docx docx = new Docx();
         for (XWPFFootnote footnote : document.getFootnotes()) {
             if (footnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || footnote.getCTFtnEdn().toString().contains("<w:separator/>")){
                 continue;
             }
-            ArrayList<IBody> note = new ArrayList<>();
+            List<IBody> note = new ArrayList<>();
             docx.getFootNote().add(note);
-            for (IBodyElement element : footnote.getBodyElements()) {
-                note.add(iBodyParse(element, spellCheckerType));
-            }
+            asyncIBody(note, footnote.getBodyElements(), spellCheckerType);
         }
 
         for (XWPFEndnote endnote : document.getEndnotes()) {
             if (endnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || endnote.getCTFtnEdn().toString().contains("<w:separator/>")){
                 continue;
             }
-            ArrayList<IBody> note = new ArrayList<>();
+            List<IBody> note = new ArrayList<>();
             docx.getEndNote().add(note);
-            for (IBodyElement element : endnote.getBodyElements()) {
-                note.add(iBodyParse(element, spellCheckerType));
-            }
+            asyncIBody(note, endnote.getBodyElements(), spellCheckerType);
         }
 
-        List<IBodyElement> paragraphs = document.getBodyElements();
+        asyncIBody(docx.getBody(), document.getBodyElements(), spellCheckerType);
+
+        docx.getFooter().addAll(footerParse(document.getFooterList(), spellCheckerType));
+        docx.getHeader().addAll(headerParse(document.getHeaderList(), spellCheckerType));
+
+        return docx;
+    }
+
+    public void asyncIBody(List<IBody> body, List<IBodyElement> paragraphs, SpellCheckerType spellCheckerType){
+        ExecutorService executor = Executors.newFixedThreadPool(5);
         List<CompletableFuture<IBody>> futures = new ArrayList<>();
 
         for (IBodyElement paragraph : paragraphs) {
@@ -71,8 +75,8 @@ public class DocxParserImp implements DocxParser {
                         try {
                             IBody iBody = future.get();
                             if (iBody != null) {
-                                synchronized (docx.getBody()) {
-                                    docx.getBody().add(iBody);
+                                synchronized (body) {
+                                    body.add(iBody);
                                 }
                             }
                         } catch (InterruptedException | ExecutionException e) {
@@ -82,12 +86,8 @@ public class DocxParserImp implements DocxParser {
                 }).join();
 
         executor.shutdown();
-
-        docx.getFooter().addAll(footerParse(document.getFooterList(), spellCheckerType));
-        docx.getHeader().addAll(headerParse(document.getHeaderList(), spellCheckerType));
-
-        return docx;
     }
+
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType) {
         if (bodyElement.getElementType() == BodyElementType.PARAGRAPH) {
@@ -128,10 +128,7 @@ public class DocxParserImp implements DocxParser {
                     }
                 }
 
-
-                for (IBodyElement bodyElement : cells.get(j).getBodyElements()) {
-                    tableCell.getIBody().add(iBodyParse(bodyElement, spellCheckerType));
-                }
+                asyncIBody(tableCell.getIBody(), cells.get(j).getBodyElements(), spellCheckerType);
                 arr.add(tableCell);
             }
             t.getTable().add(arr);
@@ -198,10 +195,7 @@ public class DocxParserImp implements DocxParser {
     public List<IBody> headerParse(List<XWPFHeader> headerList, SpellCheckerType spellCheckerType) {
         List<IBody> result = new ArrayList<>();
         for (XWPFHeader header : headerList) {
-            List<IBodyElement> bodyElements = header.getBodyElements();
-            for (IBodyElement bodyElement : bodyElements) {
-                result.add(iBodyParse(bodyElement, spellCheckerType));
-            }
+            asyncIBody(result, header.getBodyElements(),spellCheckerType);
         }
         return result;
     }
@@ -210,10 +204,7 @@ public class DocxParserImp implements DocxParser {
     public List<IBody> footerParse(List<XWPFFooter> footerList, SpellCheckerType spellCheckerType ) {
         List<IBody> result = new ArrayList<>();
         for (XWPFFooter footer : footerList) {
-            List<IBodyElement> bodyElements = footer.getBodyElements();
-            for (IBodyElement bodyElement : bodyElements) {
-                result.add(iBodyParse(bodyElement, spellCheckerType));
-            }
+            asyncIBody(result, footer.getBodyElements(),spellCheckerType);
         }
 
         return result;
