@@ -1,6 +1,6 @@
 package choiKoDaKimNamChung.grammarChecker.service.hwp;
 
-import choiKoDaKimNamChung.grammarChecker.domain.docx.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.domain.SpellCheckerType;
 import choiKoDaKimNamChung.grammarChecker.domain.hwp.*;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
