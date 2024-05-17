@@ -7,6 +7,8 @@ import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
 import choiKoDaKimNamChung.grammarChecker.domain.SpellCheckerType;
 import choiKoDaKimNamChung.grammarChecker.service.hwp.HwpApply;
 import choiKoDaKimNamChung.grammarChecker.service.hwp.HwpParser;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.reader.HWPReader;
 import kr.dogfoot.hwplib.writer.HWPWriter;
@@ -20,7 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -32,10 +37,39 @@ public class SpellCheckerController {
     private final DocxApply docxApply;
     private final HwpParser hwpParser;
     private final HwpApply hwpApply;
+    private final ObjectMapper objectMapper;
 
-    @PostMapping("/grammar-check/docx/scan")
-    public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file,
-                                                     @RequestParam("type") SpellCheckerType type)
+    @PostMapping("/grammar-check/scan")
+    public ResponseEntity<?> grammarCheckScan(@RequestParam("file") MultipartFile file,
+                                              @RequestParam("type") SpellCheckerType type)
+            throws ExecutionException, InterruptedException {
+        String fileName = file.getOriginalFilename();
+        if (fileName != null && fileName.toLowerCase().endsWith(".docx")) {
+            return grammarCheckDocxScan(file, type);
+        } else if (fileName != null && fileName.toLowerCase().endsWith(".hwp")) {
+            return grammarCheckHwpScan(file, type);
+        } else {
+            throw new RuntimeException("지원하지 않는 파일 형식입니다.");
+        }
+    }
+
+    @PostMapping("/grammar-check/apply")
+    public ResponseEntity<InputStreamResource> grammarCheckApply(@RequestPart("file") MultipartFile file, @RequestPart("data") String data,
+                                                                 @RequestPart(value = "fileName", required = false) String newFileName) throws IOException {
+        String fileName = file.getOriginalFilename();
+        if (fileName != null && fileName.toLowerCase().endsWith(".docx")) {
+            Docx docx = objectMapper.readValue(data, Docx.class);
+            return grammarCheckDocxApply(file, docx, newFileName);
+        } else if (fileName != null && fileName.toLowerCase().endsWith(".hwp")) {
+            Hwp hwp = objectMapper.readValue(data, Hwp.class);
+            return grammarCheckHwpApply(file, hwp, newFileName);
+        } else {
+            throw new RuntimeException("지원하지 않는 파일 형식입니다.");
+        }
+    }
+
+//    @PostMapping("/grammar-check/docx/scan")
+    public ResponseEntity<Docx> grammarCheckDocxScan(MultipartFile file, SpellCheckerType type)
             throws ExecutionException, InterruptedException {
         XWPFDocument document;
         try {
@@ -47,8 +81,9 @@ public class SpellCheckerController {
         System.out.println("spellCheckResponseDTO = " + spellCheckResponseDTO);
         return ResponseEntity.ok(spellCheckResponseDTO);
     }
-    @PostMapping("/grammar-check/docx/apply")
-    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(@RequestPart("file") MultipartFile file, @RequestPart("data") Docx docx) {
+
+//    @PostMapping("/grammar-check/docx/apply")
+    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, Docx docx, String newFileName) {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
@@ -59,9 +94,11 @@ public class SpellCheckerController {
             document.write(out);
 
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-
+            System.out.println("file.getOriginalFilename() = " + file.getOriginalFilename());
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "modified_" + file.getOriginalFilename());
+            String fileName = (newFileName != null && !newFileName.isEmpty()) ? newFileName + ".docx" : "modified_" + file.getOriginalFilename();
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName);
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -73,11 +110,8 @@ public class SpellCheckerController {
     }
 
 
-
-
-    @PostMapping("/grammar-check/hwp/scan")
-    public ResponseEntity<Hwp> grammarCheckHwpScan(@RequestParam("file") MultipartFile file,
-                                                   @RequestParam("type") SpellCheckerType type) {
+//    @PostMapping("/grammar-check/hwp/scan")
+    public ResponseEntity<Hwp> grammarCheckHwpScan(MultipartFile file, SpellCheckerType type) {
         HWPFile hwpFile;
         try {
             hwpFile = HWPReader.fromInputStream(file.getInputStream());
@@ -89,8 +123,9 @@ public class SpellCheckerController {
         return ResponseEntity.ok(hwp);
     }
 
-    @PostMapping("/grammar-check/hwp/apply")
-    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(@RequestPart("file") MultipartFile file, @RequestPart("data") Hwp hwp) {
+
+//    @PostMapping("/grammar-check/hwp/apply")
+    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, Hwp hwp, String newFileName) {
         HWPFile hwpFile;
         try {
             hwpFile = HWPReader.fromInputStream(file.getInputStream());
@@ -103,7 +138,9 @@ public class SpellCheckerController {
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "modified_" + file.getOriginalFilename());
+            String fileName = (newFileName != null && !newFileName.isEmpty()) ? newFileName + ".hwp" : "modified_" + file.getOriginalFilename();
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName);
 
             return ResponseEntity.ok()
                     .headers(headers)

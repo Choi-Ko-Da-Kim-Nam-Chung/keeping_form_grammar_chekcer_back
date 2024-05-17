@@ -3,8 +3,6 @@ package choiKoDaKimNamChung.grammarChecker.service.docx;
 import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
 import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
-import choiKoDaKimNamChung.grammarChecker.response.ExtractData;
-import choiKoDaKimNamChung.grammarChecker.response.ExtractNotes;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import choiKoDaKimNamChung.grammarChecker.domain.SpellCheckerType;
 
