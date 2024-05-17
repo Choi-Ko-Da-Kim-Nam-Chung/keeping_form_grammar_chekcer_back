@@ -1,24 +1,26 @@
 package choiKoDaKimNamChung.grammarChecker.controller;
 
-import choiKoDaKimNamChung.grammarChecker.docx.Docx;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.Docx;
+import choiKoDaKimNamChung.grammarChecker.domain.hwp.Hwp;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxApply;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxParser;
-import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import choiKoDaKimNamChung.grammarChecker.domain.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.service.hwp.HwpApply;
+import choiKoDaKimNamChung.grammarChecker.service.hwp.HwpParser;
+import kr.dogfoot.hwplib.object.HWPFile;
+import kr.dogfoot.hwplib.reader.HWPReader;
+import kr.dogfoot.hwplib.writer.HWPWriter;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -28,6 +30,8 @@ public class SpellCheckerController {
 
     private final DocxParser docxParser;
     private final DocxApply docxApply;
+    private final HwpParser hwpParser;
+    private final HwpApply hwpApply;
 
     @PostMapping("/grammar-check/docx/scan")
     public ResponseEntity<Docx> grammarCheckDocxScan(@RequestParam("file") MultipartFile file,
@@ -68,4 +72,45 @@ public class SpellCheckerController {
         }
     }
 
+
+
+
+    @PostMapping("/grammar-check/hwp/scan")
+    public ResponseEntity<Hwp> grammarCheckHwpScan(@RequestParam("file") MultipartFile file,
+                                                   @RequestParam("type") SpellCheckerType type) {
+        HWPFile hwpFile;
+        try {
+            hwpFile = HWPReader.fromInputStream(file.getInputStream());
+
+        } catch (Exception e) {
+            throw new RuntimeException("파일을 처리하는 도중 오류가 발생했습니다.", e);
+        }
+        Hwp hwp = hwpParser.hwpParse(hwpFile, type);
+        return ResponseEntity.ok(hwp);
+    }
+
+    @PostMapping("/grammar-check/hwp/apply")
+    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(@RequestPart("file") MultipartFile file, @RequestPart("data") Hwp hwp) {
+        HWPFile hwpFile;
+        try {
+            hwpFile = HWPReader.fromInputStream(file.getInputStream());
+
+            hwpFile = hwpApply.hwpApply(hwpFile, hwp);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            HWPWriter.toStream(hwpFile, out);
+
+            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + "modified_" + file.getOriginalFilename());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(new InputStreamResource(in));
+
+        } catch (Exception e) {
+            throw new RuntimeException("파일을 처리하는 도중 오류가 발생했습니다.", e);
+        }
+    }
 }

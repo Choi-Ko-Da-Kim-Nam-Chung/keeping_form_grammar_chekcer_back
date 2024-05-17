@@ -1,5 +1,5 @@
 package choiKoDaKimNamChung.grammarChecker.docx;
 
 public enum IBodyType {
-    TABLE, PARAGRAPH
+    TABLE, PARAGRAPH, FOOT_NOTE, END_NOTE
 }

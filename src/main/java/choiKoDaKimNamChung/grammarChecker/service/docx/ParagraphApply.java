@@ -1,6 +1,6 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.docx.Paragraph;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.Paragraph;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 
 public interface ParagraphApply {

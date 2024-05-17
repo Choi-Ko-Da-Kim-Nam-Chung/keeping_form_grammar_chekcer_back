@@ -1,11 +1,11 @@
-package choiKoDaKimNamChung.grammarChecker.docx;
+package choiKoDaKimNamChung.grammarChecker.domain.hwp;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class NoteInfo extends IBody{
+public class NoteInfo extends IBody {
     NoteInfoType noteInfoType;
     int noteNum;
 
