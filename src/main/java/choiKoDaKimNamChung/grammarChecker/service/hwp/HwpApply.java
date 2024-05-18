@@ -4,6 +4,7 @@ import choiKoDaKimNamChung.grammarChecker.domain.hwp.*;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.object.bodytext.Section;
 import kr.dogfoot.hwplib.object.bodytext.control.Control;
+import kr.dogfoot.hwplib.object.bodytext.control.ControlFootnote;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlType;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
@@ -29,7 +30,17 @@ public class HwpApply {
                 controlApply(paragraph, iter.next());
             }
         }
+
         return hwpfile;
+    }
+
+    private void applyParagraphs(Paragraph[] paragraphs, List<IBody> bodies) {
+        Iterator<IBody> iter = bodies.iterator();
+        for (Paragraph paragraph : paragraphs) {
+            if (iter.hasNext()) {
+                controlApply(paragraph, iter.next());
+            }
+        }
     }
 
     public void controlApply(Paragraph paragraph, IBody iBody){

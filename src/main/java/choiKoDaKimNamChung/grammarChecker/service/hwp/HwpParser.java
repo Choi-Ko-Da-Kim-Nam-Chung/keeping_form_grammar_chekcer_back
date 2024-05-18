@@ -6,9 +6,7 @@ import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.object.bodytext.Section;
-import kr.dogfoot.hwplib.object.bodytext.control.Control;
-import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
-import kr.dogfoot.hwplib.object.bodytext.control.ControlType;
+import kr.dogfoot.hwplib.object.bodytext.control.*;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Row;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
@@ -38,7 +36,39 @@ public class HwpParser {
         for (Section section : hwpfile.getBodyText().getSectionList()) {
             asyncParse(hwp.getBody(), section.getParagraphs(), spellCheckerType);
         }
+        extractFootnotesEndnotesHeaderFooter(hwp, hwpfile, spellCheckerType);
+
         return hwp;
+    }
+
+    // 매 번 전체 본문을 순회하는것보다 미주,각주,머리글,바닥글 한번에 하는게 효율적일 것 같아서 한번에 묶음.
+    // 따로 미주와 각주만 뽑아내는건 찾지 못함
+    public void extractFootnotesEndnotesHeaderFooter(Hwp hwp, HWPFile hwpFile, SpellCheckerType spellCheckerType) {
+        for (Section section : hwpFile.getBodyText().getSectionList()) {
+            for (Paragraph paragraph : section.getParagraphs()) {
+                if (paragraph.getControlList() != null) {
+                    for (Control control : paragraph.getControlList()) {
+                        if (control.getType() == ControlType.Footnote) {
+                            ControlFootnote footnote = (ControlFootnote) control;
+                            List<IBody> note = new ArrayList<>();
+                            hwp.getFootNote().add(note);
+                            asyncParse(note, footnote.getParagraphList().getParagraphs(), spellCheckerType);
+                        } else if (control.getType() == ControlType.Endnote) {
+                            ControlEndnote endnote = (ControlEndnote) control;
+                            List<IBody> note = new ArrayList<>();
+                            hwp.getEndNote().add(note);
+                            asyncParse(note, endnote.getParagraphList().getParagraphs(), spellCheckerType);
+                        } else if (control.getType() == ControlType.Header) {
+                            ControlHeader header = (ControlHeader) control;
+                            asyncParse(hwp.getHeader(), header.getParagraphList().getParagraphs(), spellCheckerType);
+                        } else if (control.getType() == ControlType.Footer) {
+                            ControlFooter footer = (ControlFooter) control;
+                            asyncParse(hwp.getFooter(), footer.getParagraphList().getParagraphs(), spellCheckerType);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public IBody controlParse(Paragraph paragraph, SpellCheckerType spellCheckerType){

@@ -33,6 +33,7 @@ public class DocxParserImp implements DocxParser {
             }
             List<IBody> note = new ArrayList<>();
             docx.getFootNote().add(note);
+            System.out.println("((XWPFParagraph) footnote).getText() = " + ((XWPFParagraph) footnote.getBodyElements().get(0)).getText());
             asyncIBody(note, footnote.getBodyElements(), spellCheckerType);
         }
 
