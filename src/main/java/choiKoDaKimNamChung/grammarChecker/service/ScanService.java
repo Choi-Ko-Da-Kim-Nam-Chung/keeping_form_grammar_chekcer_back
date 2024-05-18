@@ -32,7 +32,7 @@ public class ScanService {
             throw new RuntimeException(e);
         }
         Docx spellCheckResponseDTO = docxParser.docxParse(document, type);
-        System.out.println("spellCheckResponseDTO = " + spellCheckResponseDTO);
+//        System.out.println("spellCheckResponseDTO = " + spellCheckResponseDTO);
         return ResponseEntity.ok(spellCheckResponseDTO);
     }
 

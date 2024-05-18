@@ -4,6 +4,7 @@ import choiKoDaKimNamChung.grammarChecker.domain.hwp.*;
 import kr.dogfoot.hwplib.object.HWPFile;
 import kr.dogfoot.hwplib.object.bodytext.Section;
 import kr.dogfoot.hwplib.object.bodytext.control.Control;
+import kr.dogfoot.hwplib.object.bodytext.control.ControlFootnote;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlType;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
@@ -29,7 +30,36 @@ public class HwpApply {
                 controlApply(paragraph, iter.next());
             }
         }
+        applyHeaders(hwpfile, hwp.getHeader());
+        applyFooters(hwpfile, hwp.getFooter());
+        applyFootnotes(hwpfile, hwp.getFootNote());
+        applyEndnotes(hwpfile, hwp.getEndNote());
+
         return hwpfile;
+    }
+
+    public void applyFootnotes(HWPFile hwpfile, List<IBody> footnotes) {
+        for (Section section : hwpfile.getBodyText().getSectionList()) {
+            for (Paragraph paragraph : section.getParagraphs()) {
+                if (paragraph.getControlList() != null) {
+                    for (Control control : paragraph.getControlList()) {
+                        if (control.getType() == ControlType.Footnote) {
+                            ControlFootnote footnote = (ControlFootnote) control;
+                            applyParagraphs(footnote.getParagraphList().getParagraphs(), footnotes);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void applyParagraphs(Paragraph[] paragraphs, List<IBody> bodies) {
+        Iterator<IBody> iter = bodies.iterator();
+        for (Paragraph paragraph : paragraphs) {
+            if (iter.hasNext()) {
+                controlApply(paragraph, iter.next());
+            }
+        }
     }
 
     public void controlApply(Paragraph paragraph, IBody iBody){
