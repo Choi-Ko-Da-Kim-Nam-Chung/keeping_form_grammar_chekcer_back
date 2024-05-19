@@ -25,7 +25,7 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Build Docker Image
-        run: docker build -t aj4941/grammar_checker:${{ github.sha }} .
+        run: docker build -t aj4941/spell_checker_spring:latest .
 
       - name: Login Docker Hub
         uses: docker/login-action@v1
@@ -34,4 +34,15 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Docker Image to Docker Hub
-        run: docker push aj4941/grammar_checker:${{ github.sha }}
+        run: docker push aj4941/spell_checker_spring:latest
+
+      - name: SSH into AWS EC2 instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: 3.38.168.254
+          debug: true
+          port: 22
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          script: |
+            ssh -o StrictHostKeyChecking=no ubuntu@10.0.134.104 'bash /home/ubuntu/deploy-spring.sh'
