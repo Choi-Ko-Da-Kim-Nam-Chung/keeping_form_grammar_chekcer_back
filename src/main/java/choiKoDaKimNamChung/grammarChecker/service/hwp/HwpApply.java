@@ -67,12 +67,13 @@ public class HwpApply {
 
     public void tableApply(ControlTable table, Table t){
 //        table.getCaption().getParagraphList();
+        Iterator<List<TableCell>> r = t.getTable().iterator();
         for (Row row : table.getRowList()) {
-            Iterator<List<TableCell>> r = t.getTable().iterator();
+            Iterator<TableCell> c = r.next().iterator();
             for (Cell cell : row.getCellList()) {
-                Iterator<TableCell> c = r.next().iterator();
+                Iterator<IBody> ibody = c.next().getIBody().iterator();
                 for (Paragraph paragraph : cell.getParagraphList()) {
-                    controlApply(paragraph, (IBody)c);
+                    controlApply(paragraph, ibody.next());
                 }
             }
         }
