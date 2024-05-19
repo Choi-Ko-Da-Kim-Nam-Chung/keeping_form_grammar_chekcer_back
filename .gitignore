@@ -1,9 +1,4 @@
 HELP.md
-<<<<<<< HEAD
-.DS_Store
-=======
-DS_Store
->>>>>>> origin
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
