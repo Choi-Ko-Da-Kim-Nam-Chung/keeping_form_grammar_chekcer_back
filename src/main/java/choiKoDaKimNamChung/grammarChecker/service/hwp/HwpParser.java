@@ -1,6 +1,6 @@
 package choiKoDaKimNamChung.grammarChecker.service.hwp;
 
-import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.SpellCheckerType;
 import choiKoDaKimNamChung.grammarChecker.domain.hwp.*;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
