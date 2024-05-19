@@ -1,10 +1,10 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
+import choiKoDaKimNamChung.grammarChecker.docx.SpellCheckerType;
 import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
 import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
-import choiKoDaKimNamChung.grammarChecker.domain.SpellCheckerType;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
@@ -88,7 +88,6 @@ public class DocxParserImp implements DocxParser {
 
         executor.shutdown();
     }
-
     @Override
     public IBody iBodyParse(IBodyElement bodyElement, SpellCheckerType spellCheckerType) {
         if (bodyElement.getElementType() == BodyElementType.PARAGRAPH) {
@@ -137,7 +136,6 @@ public class DocxParserImp implements DocxParser {
         }
         return t;
     }
-
     @Override
     public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
         Paragraph result;
