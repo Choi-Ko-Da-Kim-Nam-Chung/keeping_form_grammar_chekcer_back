@@ -1,4 +1,5 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
+import choiKoDaKimNamChung.grammarChecker.domain.docx.SpellCheckerType;
 import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
 import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
