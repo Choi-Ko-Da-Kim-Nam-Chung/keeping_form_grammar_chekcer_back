@@ -40,8 +40,15 @@ public class HwpApply {
     }
 
     public void applyFootnotesEndnotesHeaderFooter(HWPFile hwpFile, Iterator<List<IBody>> footnoteIter, Iterator<List<IBody>> endnoteIter, Iterator<IBody> headerIter, Iterator<IBody> footerIter) {
-        Iterator<IBody> fnIter = footnoteIter.next().iterator();
-        Iterator<IBody> enIter = endnoteIter.next().iterator();
+        Iterator<IBody> fnIter = null;
+        if (footnoteIter.hasNext()) {
+            fnIter = footnoteIter.next().iterator();
+        }
+
+        Iterator<IBody> enIter = null;
+        if (endnoteIter.hasNext()) {
+            enIter = endnoteIter.next().iterator();
+        }
 
         for (Section section : hwpFile.getBodyText().getSectionList()) {
             for (Paragraph paragraph : section.getParagraphs()) {
