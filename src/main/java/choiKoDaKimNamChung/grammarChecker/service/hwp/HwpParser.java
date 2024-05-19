@@ -19,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -89,7 +90,7 @@ public class HwpParser {
         ParagraphText result = new ParagraphText();
         try{
             result.setOrgStr(paraText.getNormalString(0));
-
+            System.out.println("result.getOrgStr() = " + result.getOrgStr());
             TextRequest textRequest = new TextRequest(result.getOrgStr());
             String url = spellCheckerType.getUrl();
 

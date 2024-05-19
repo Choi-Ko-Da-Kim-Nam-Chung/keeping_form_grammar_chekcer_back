@@ -9,6 +9,7 @@ import kr.dogfoot.hwplib.object.bodytext.paragraph.charshape.CharPositionShapeId
 import kr.dogfoot.hwplib.object.bodytext.paragraph.charshape.ParaCharShape;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.text.HWPChar;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.text.HWPCharNormal;
+import kr.dogfoot.hwplib.object.bodytext.paragraph.text.HWPCharType;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.text.ParaText;
 import org.springframework.stereotype.Service;
 
@@ -22,16 +23,22 @@ public class EditDistanceParagraphTextApply {
         ParaCharShape charShape = paragraph.getCharShape();
         Iterator<WordError> weIter = paragraphText.getErrors().iterator();
         int adjustCharIdx = 0;
+
+        while(paragraph.getText().getCharList().get(adjustCharIdx).getType()!= HWPCharType.Normal){
+            adjustCharIdx++;
+        }
+
         while(weIter.hasNext()){
             WordError error = weIter.next();
             if(error.getReplaceStr() == null) continue;
-
 
             int charIdx = adjustCharIdx + error.getStart();
             int replaceCharIdx = 0;
 
             Deque<Edit> edits = EditDistance.trackingEditDistance(error.getOrgStr(), error.getReplaceStr());
+
             while(!edits.isEmpty()){
+
                 Edit edit = edits.pollLast();
                 if(edit == Edit.CASCADE){
                     paragraph.getText().getCharList().get(charIdx++).setCode(error.getReplaceStr().charAt(replaceCharIdx++));
@@ -46,8 +53,6 @@ public class EditDistanceParagraphTextApply {
                             next.setPosition(next.getPosition()-1);
                         }
                     }
-
-
                 }else if(edit == Edit.ADD){
                     HWPCharNormal hwpCharNormal = new HWPCharNormal();
                     hwpCharNormal.setCode(error.getReplaceStr().charAt(replaceCharIdx++));
