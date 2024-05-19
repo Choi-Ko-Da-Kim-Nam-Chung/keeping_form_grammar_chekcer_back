@@ -32,7 +32,7 @@ public class ApplyService {
     private final DocxApply docxApply;
     private final HwpApply hwpApply;
 
-    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, Docx docx, String newFileName) {
+    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, Docx docx) {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
@@ -45,9 +45,7 @@ public class ApplyService {
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
             HttpHeaders headers = new HttpHeaders();
 
-            String fileName = (newFileName != null && !newFileName.isEmpty()) ? newFileName + ".docx" : "modified_" + file.getOriginalFilename();
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s" , encodedFileName));
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s" , "response.docx"));
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -60,7 +58,7 @@ public class ApplyService {
     }
 
 
-    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, Hwp hwp, String newFileName) {
+    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, Hwp hwp) {
         HWPFile hwpFile;
         try {
             hwpFile = HWPReader.fromInputStream(file.getInputStream());
@@ -72,10 +70,8 @@ public class ApplyService {
 
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
             HttpHeaders headers = new HttpHeaders();
-            
-            String fileName = (newFileName != null && !newFileName.isEmpty()) ? newFileName + ".hwp" : "modified_" + file.getOriginalFilename();
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s" , encodedFileName));
+
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s" , "response.hwp"));
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
