@@ -19,6 +19,7 @@ public class CorsConfig {
                 "https://spell-checker.co.kr",
                 "http://api.spell-checker.co.kr",
                 "https://api.spell-checker.co.kr", "*"));
+      
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));

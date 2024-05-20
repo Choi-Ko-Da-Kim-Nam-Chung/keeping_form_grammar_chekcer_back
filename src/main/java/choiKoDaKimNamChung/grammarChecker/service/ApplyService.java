@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -30,7 +32,7 @@ public class ApplyService {
     private final DocxApply docxApply;
     private final HwpApply hwpApply;
 
-    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, Docx docx, String newFileName) {
+    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, Docx docx) {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
@@ -41,14 +43,13 @@ public class ApplyService {
             document.write(out);
 
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-            System.out.println("file.getOriginalFilename() = " + file.getOriginalFilename());
             HttpHeaders headers = new HttpHeaders();
-            String fileName = (newFileName != null && !newFileName.isEmpty()) ? newFileName + ".docx" : "modified_" + file.getOriginalFilename();
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName);
+
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s" , "response.docx"));
 
             return ResponseEntity.ok()
                     .headers(headers)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(new InputStreamResource(in));
 
         } catch (IOException e) {
@@ -57,7 +58,7 @@ public class ApplyService {
     }
 
 
-    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, Hwp hwp, String newFileName) {
+    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, Hwp hwp) {
         HWPFile hwpFile;
         try {
             hwpFile = HWPReader.fromInputStream(file.getInputStream());
@@ -68,14 +69,12 @@ public class ApplyService {
             HWPWriter.toStream(hwpFile, out);
 
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-
             HttpHeaders headers = new HttpHeaders();
-            String fileName = (newFileName != null && !newFileName.isEmpty()) ? newFileName + ".hwp" : "modified_" + file.getOriginalFilename();
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName);
 
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s" , "response.hwp"));
             return ResponseEntity.ok()
                     .headers(headers)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(new InputStreamResource(in));
 
         } catch (Exception e) {

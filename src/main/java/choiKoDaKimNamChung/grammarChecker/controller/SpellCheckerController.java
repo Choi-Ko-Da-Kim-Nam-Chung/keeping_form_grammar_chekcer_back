@@ -38,15 +38,14 @@ public class SpellCheckerController {
     }
 
     @PostMapping("/grammar-check/apply")
-    public ResponseEntity<InputStreamResource> grammarCheckApply(@RequestPart("file") MultipartFile file, @RequestPart("data") String data,
-                                                                 @RequestPart(value = "fileName", required = false) String newFileName) throws IOException {
+    public ResponseEntity<InputStreamResource> grammarCheckApply(@RequestPart("file") MultipartFile file, @RequestPart("data") String data) throws IOException {
         String fileName = file.getOriginalFilename();
         if (fileName != null && fileName.toLowerCase().endsWith(".docx")) {
             Docx docx = objectMapper.readValue(data, Docx.class);
-            return applyService.grammarCheckDocxApply(file, docx, newFileName);
+            return applyService.grammarCheckDocxApply(file, docx);
         } else if (fileName != null && fileName.toLowerCase().endsWith(".hwp")) {
             Hwp hwp = objectMapper.readValue(data, Hwp.class);
-            return applyService.grammarCheckHwpApply(file, hwp, newFileName);
+            return applyService.grammarCheckHwpApply(file, hwp);
         } else {
             throw new RuntimeException("지원하지 않는 파일 형식입니다.");
         }
