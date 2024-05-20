@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class SpellCheckerController {
 
     private final ScanService scanService;
