@@ -14,11 +14,13 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
+        config.setAllowCredentials(true);
+
         config.setAllowedOrigins(List.of("http://localhost:3000",
                 "http://spell-checker.co.kr",
                 "https://spell-checker.co.kr",
                 "http://api.spell-checker.co.kr",
-                "https://api.spell-checker.co.kr", "*"));
+                "https://api.spell-checker.co.kr"));
       
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
