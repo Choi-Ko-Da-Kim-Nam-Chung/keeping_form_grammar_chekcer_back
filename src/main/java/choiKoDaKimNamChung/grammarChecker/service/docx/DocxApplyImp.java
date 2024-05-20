@@ -61,9 +61,9 @@ public class DocxApplyImp implements DocxApply{
 
     @Override
     public void iBodyParse(IBodyElement bodyElement, IBody iBody) {
-        if (iBody.getType() == IBodyType.PARAGRAPH){
+        if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
             paragraphApply.paragraphParse((XWPFParagraph) bodyElement,(Paragraph) iBody);
-        }else if(iBody.getType() == IBodyType.TABLE){
+        }else if(bodyElement.getElementType() == BodyElementType.TABLE){
             tableParse((XWPFTable) bodyElement,(Table) iBody);
         }else{
 
