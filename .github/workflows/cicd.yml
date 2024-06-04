@@ -45,4 +45,4 @@ jobs:
           username: aj4941
           key: ${{ secrets.SECRET_KEY }}
           script: |
-            'bash deploy-spring.sh'
+            'bash /home/aj4941/deploy-spring.sh'
