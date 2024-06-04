@@ -39,10 +39,10 @@ jobs:
       - name: SSH into AWS EC2 instance
         uses: appleboy/ssh-action@master
         with:
-          host: 43.203.232.246
+          host: 34.64.157.92
           debug: true
           port: 22
-          username: ubuntu
-          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          username: aj4941
+          key: ${{ secrets.SECRET_KEY }}
           script: |
-            ssh -o StrictHostKeyChecking=no ubuntu@10.0.134.104 'bash /home/ubuntu/deploy-spring.sh'
+            'bash deploy-spring.sh'
