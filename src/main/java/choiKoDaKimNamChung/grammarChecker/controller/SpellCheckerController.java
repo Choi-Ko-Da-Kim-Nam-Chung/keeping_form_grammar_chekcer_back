@@ -28,9 +28,12 @@ public class SpellCheckerController {
                                               @RequestParam("type") SpellCheckerType type)
             throws ExecutionException, InterruptedException {
         String fileName = file.getOriginalFilename();
-        if (fileName != null && fileName.toLowerCase().endsWith(".docx")) {
+        if (fileName != null && fileName.toLowerCase().endsWith(".docx")){
             return scanService.grammarCheckDocxScan(file, type);
-        } else if (fileName != null && fileName.toLowerCase().endsWith(".hwp")) {
+        }
+        else if (fileName != null && fileName.toLowerCase().endsWith(".doc")) {
+            return scanService.grammarCheckDocScan(file,type);}
+        else if (fileName != null && fileName.toLowerCase().endsWith(".hwp")) {
             return scanService.grammarCheckHwpScan(file, type);
         } else {
             throw new RuntimeException("지원하지 않는 파일 형식입니다.");

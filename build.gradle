@@ -30,10 +30,15 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	implementation 'org.apache.poi:poi-ooxml:5.2.2'
+	implementation 'org.apache.poi:poi-scratchpad:5.2.3'
+
 	implementation 'commons-fileupload:commons-fileupload:1.4'
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 	implementation 'kr.dogfoot:hwplib:1.1.5'
 	implementation 'commons-io:commons-io:2.11.0'
+	implementation files('libs/aspose-words-24.5-jdk17.jar')
+	implementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 tasks.named('test') {
