@@ -2,7 +2,6 @@ package choiKoDaKimNamChung.grammarChecker.service;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Queue;
 
 public class EditDistance {
     public static Deque<Edit> trackingEditDistance(String origin, String replace) {

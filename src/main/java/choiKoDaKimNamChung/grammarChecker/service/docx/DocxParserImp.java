@@ -1,10 +1,9 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
-import choiKoDaKimNamChung.grammarChecker.domain.docx.SpellCheckerType;
-import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
-import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
+
+import choiKoDaKimNamChung.grammarChecker.domain.IBody;
+import choiKoDaKimNamChung.grammarChecker.domain.*;
 import choiKoDaKimNamChung.grammarChecker.request.TextRequest;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
-
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.http.MediaType;
@@ -12,9 +11,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+
 import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,8 +30,8 @@ public class DocxParserImp implements DocxParser {
 
     private final WebClient webClient;
     @Override
-    public Docx docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
-        Docx docx = new Docx();
+    public SpellData docxParse(XWPFDocument document, SpellCheckerType spellCheckerType) {
+        SpellData docx = new SpellData();
         for (XWPFFootnote footnote : document.getFootnotes()) {
             if (footnote.getCTFtnEdn().toString().contains("<w:continuationSeparator/>") || footnote.getCTFtnEdn().toString().contains("<w:separator/>")){
                 continue;
@@ -136,14 +142,14 @@ public class DocxParserImp implements DocxParser {
         return t;
     }
     @Override
-    public Paragraph paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
-        Paragraph result;
+    public ParagraphText paragraphParse(XWPFParagraph paragraph, SpellCheckerType spellCheckerType) {
+        ParagraphText result;
 
         if(!paragraph.getFootnoteText().isEmpty()){  // 미주, 각주가 있으면
             result = removeReferences(paragraph.getParagraphText());
 
         }else{
-            result = new Paragraph();
+            result = new ParagraphText();
             result.setOrgStr(paragraph.getText());
         }
 
@@ -164,7 +170,7 @@ public class DocxParserImp implements DocxParser {
     }
 
     // footnoteRef, endnoteRef 제거 및 plainParagraph 처리
-    public Paragraph removeReferences(String paragraphTextWithRef) {
+    public ParagraphText removeReferences(String paragraphTextWithRef) {
         // original text사이에 있는 footnoteRef, endnoteRef 제거
         Pattern pattern = Pattern.compile("\\[(endnoteRef|footnoteRef):(\\d+)\\]");
 
@@ -182,7 +188,7 @@ public class DocxParserImp implements DocxParser {
             // 매칭된 부분 문자열 제거
             resultText.delete(start - (paragraphTextWithRef.length() - resultText.length()), end - (paragraphTextWithRef.length() - resultText.length()));
         }
-        Paragraph p = new Paragraph();
+        ParagraphText p = new ParagraphText();
         p.setOrgStr(String.valueOf(resultText));
         p.setNotes(notes);
         // plainParagraph 삽입

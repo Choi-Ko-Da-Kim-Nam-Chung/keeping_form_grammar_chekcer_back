@@ -1,7 +1,6 @@
 package choiKoDaKimNamChung.grammarChecker.service;
 
-import choiKoDaKimNamChung.grammarChecker.domain.docx.Docx;
-import choiKoDaKimNamChung.grammarChecker.domain.hwp.Hwp;
+import choiKoDaKimNamChung.grammarChecker.domain.SpellData;
 import choiKoDaKimNamChung.grammarChecker.service.docx.DocxApply;
 import choiKoDaKimNamChung.grammarChecker.service.hwp.HwpApply;
 import kr.dogfoot.hwplib.object.HWPFile;
@@ -19,9 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 
 @Service
@@ -32,7 +28,7 @@ public class ApplyService {
     private final DocxApply docxApply;
     private final HwpApply hwpApply;
 
-    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, Docx docx) {
+    public ResponseEntity<InputStreamResource> grammarCheckDocxApply(MultipartFile file, SpellData docx) {
         XWPFDocument document;
         try {
             document = new XWPFDocument(file.getInputStream());
@@ -58,7 +54,7 @@ public class ApplyService {
     }
 
 
-    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, Hwp hwp) {
+    public ResponseEntity<InputStreamResource> grammarCheckHwpApply(MultipartFile file, SpellData hwp) {
         HWPFile hwpFile;
         try {
             hwpFile = HWPReader.fromInputStream(file.getInputStream());
