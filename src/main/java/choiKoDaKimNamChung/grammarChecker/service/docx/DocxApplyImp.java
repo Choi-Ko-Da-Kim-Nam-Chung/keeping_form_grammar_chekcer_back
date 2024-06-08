@@ -1,22 +1,21 @@
 package choiKoDaKimNamChung.grammarChecker.service.docx;
 
-import choiKoDaKimNamChung.grammarChecker.domain.docx.*;
-
-
-import choiKoDaKimNamChung.grammarChecker.domain.docx.IBody;
+import choiKoDaKimNamChung.grammarChecker.domain.IBody;
+import choiKoDaKimNamChung.grammarChecker.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class DocxApplyImp implements DocxApply{
 
-    private final ParagraphApply paragraphApply;
+    private final DocxParagraphApply docxParagraphApply;
     @Override
-    public XWPFDocument docxParse(XWPFDocument document, Docx docx) {
+    public XWPFDocument docxParse(XWPFDocument document, SpellData docx) {
 
         //header
         headerParse(document.getHeaderList(), docx.getHeader());
@@ -62,7 +61,7 @@ public class DocxApplyImp implements DocxApply{
     @Override
     public void iBodyParse(IBodyElement bodyElement, IBody iBody) {
         if (bodyElement.getElementType() == BodyElementType.PARAGRAPH){
-            paragraphApply.paragraphParse((XWPFParagraph) bodyElement,(Paragraph) iBody);
+            docxParagraphApply.paragraphParse((XWPFParagraph) bodyElement,(ParagraphText) iBody);
         }else if(bodyElement.getElementType() == BodyElementType.TABLE){
             tableParse((XWPFTable) bodyElement,(Table) iBody);
         }else{

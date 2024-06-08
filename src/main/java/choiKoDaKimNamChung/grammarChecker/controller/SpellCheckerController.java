@@ -1,8 +1,7 @@
 package choiKoDaKimNamChung.grammarChecker.controller;
 
-import choiKoDaKimNamChung.grammarChecker.domain.docx.Docx;
-import choiKoDaKimNamChung.grammarChecker.domain.docx.SpellCheckerType;
-import choiKoDaKimNamChung.grammarChecker.domain.hwp.Hwp;
+import choiKoDaKimNamChung.grammarChecker.domain.SpellCheckerType;
+import choiKoDaKimNamChung.grammarChecker.domain.SpellData;
 import choiKoDaKimNamChung.grammarChecker.service.ApplyService;
 import choiKoDaKimNamChung.grammarChecker.service.ScanService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +10,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -41,10 +41,10 @@ public class SpellCheckerController {
     public ResponseEntity<InputStreamResource> grammarCheckApply(@RequestPart("file") MultipartFile file, @RequestPart("data") String data) throws IOException {
         String fileName = file.getOriginalFilename();
         if (fileName != null && fileName.toLowerCase().endsWith(".docx")) {
-            Docx docx = objectMapper.readValue(data, Docx.class);
+            SpellData docx = objectMapper.readValue(data, SpellData.class);
             return applyService.grammarCheckDocxApply(file, docx);
         } else if (fileName != null && fileName.toLowerCase().endsWith(".hwp")) {
-            Hwp hwp = objectMapper.readValue(data, Hwp.class);
+            SpellData hwp = objectMapper.readValue(data, SpellData.class);
             return applyService.grammarCheckHwpApply(file, hwp);
         } else {
             throw new RuntimeException("지원하지 않는 파일 형식입니다.");
