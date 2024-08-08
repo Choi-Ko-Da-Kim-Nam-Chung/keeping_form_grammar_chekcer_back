@@ -36,6 +36,11 @@ public class DocxEditDistanceDocxParagraphApply implements DocxParagraphApply {
             StringBuilder sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
 
             for (Edit edit : edits) {
+                while(runEditIndex < 0 && runIdx != 0){
+                    paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
+                    runEditIndex = paragraph.getRuns().get(--runIdx).text().length() - 1;
+                    sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
+                }
                 if(edit==Edit.CASCADE){
                     sb.setCharAt(runEditIndex--, error.getReplaceStr().charAt(replaceEditIndex--));
                 } else if (edit == Edit.DELETE) {
@@ -49,11 +54,6 @@ public class DocxEditDistanceDocxParagraphApply implements DocxParagraphApply {
                     replaceEditIndex--;
                 }
 
-                if(runEditIndex < 0 && runIdx != 0){
-                    paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
-                    runEditIndex = paragraph.getRuns().get(--runIdx).text().length() - 1;
-                    sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
-                }
             }
             paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
         }
