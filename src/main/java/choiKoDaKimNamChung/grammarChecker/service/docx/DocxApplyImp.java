@@ -94,7 +94,7 @@ public class DocxApplyImp implements DocxApply{
 
     @Override
     public void headerParse(List<XWPFHeader> headerList, List<IBody> parsedHeaderList) {
-        for(int i=0; i<parsedHeaderList.size(); i++){
+        for(int i=0; i<headerList.size(); i++){
             XWPFHeader header = headerList.get(i);
             IBody parsedHeader = parsedHeaderList.get(i);
             for (IBodyElement element : header.getBodyElements()) {
@@ -105,7 +105,7 @@ public class DocxApplyImp implements DocxApply{
 
     @Override
     public void footerParse(List<XWPFFooter> footerList, List<IBody> parsedFooterList) {
-        for(int i=0; i<parsedFooterList.size(); i++){
+        for(int i=0; i<footerList.size(); i++){
             XWPFFooter footer = footerList.get(i);
             IBody parsedFooter = parsedFooterList.get(i);
             for (IBodyElement element : footer.getBodyElements()) {
