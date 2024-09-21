@@ -98,15 +98,18 @@ public class DocxEditDistanceDocxParagraphApply implements DocxParagraphApply {
                 charIdx -= paragraph.getRuns().get(runIdx).text().length();
                 runIdx--;
             }
-//            if (runIdx < 0) {
-//                runIdx = 0;
-//            }
-            System.out.println(paragraph.getRuns().get(0).text());
+
+//            System.out.println(paragraph.getRuns().get(0).text());
             int runEditIndex = paragraph.getRuns().get(runIdx).text().length() - (charIdx - error.getEnd()) - 1;
             int replaceEditIndex = error.getReplaceStr().length() - 1;
             StringBuilder sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
 
             for (Edit edit : edits) {
+                while(runEditIndex < 0 && runIdx != 0){
+                    paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
+                    runEditIndex = paragraph.getRuns().get(--runIdx).text().length() - 1;
+                    sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
+                }
                 if(edit==Edit.CASCADE){
                     sb.setCharAt(runEditIndex--, error.getReplaceStr().charAt(replaceEditIndex--));
                 } else if (edit == Edit.DELETE) {
@@ -120,11 +123,6 @@ public class DocxEditDistanceDocxParagraphApply implements DocxParagraphApply {
                     replaceEditIndex--;
                 }
 
-                if(runEditIndex < 0 && runIdx != 0){
-                    paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
-                    runEditIndex = paragraph.getRuns().get(--runIdx).text().length() - 1;
-                    sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
-                }
             }
             paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
         }
