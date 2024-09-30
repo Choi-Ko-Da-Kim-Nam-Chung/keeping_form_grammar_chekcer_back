@@ -38,6 +38,7 @@ public class DocxEditDistanceDocxParagraphApply implements DocxParagraphApply {
             for (Edit edit : edits) {
                 while(runEditIndex < 0 && runIdx != 0){
                     paragraph.getRuns().get(runIdx).setText(sb.toString(),0);
+                    charIdx -= paragraph.getRuns().get(runIdx).text().length();
                     runEditIndex = paragraph.getRuns().get(--runIdx).text().length() - 1;
                     sb = new StringBuilder(paragraph.getRuns().get(runIdx).text());
                 }

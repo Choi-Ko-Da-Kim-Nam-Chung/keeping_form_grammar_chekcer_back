@@ -3,6 +3,7 @@ package choiKoDaKimNamChung.grammarChecker.service.docx;
 import choiKoDaKimNamChung.grammarChecker.domain.ParagraphText;
 import choiKoDaKimNamChung.grammarChecker.response.WordError;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.springframework.stereotype.Service;
 
 //@Service
 public class DocxFirstCharDocxParagraphApply implements DocxParagraphApply {
